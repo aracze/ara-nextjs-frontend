@@ -6,7 +6,7 @@ async function getData() {
     "Content-Type": "application/json",
   };
   if (isProduction()) {
-    headers['Authorization'] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
+    headers["Authorization"] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
   }
   const res = await fetch(process.env.STRAPI_BASE_API_URL + "/graphql", {
     method: "POST",
@@ -50,7 +50,5 @@ async function getData() {
 export default async function Home() {
   const { data } = await getData();
 
-  return (
-    <PageDisplay pages={data?.pages} />
-  )
+  return <PageDisplay pages={data?.pages} />;
 }

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
@@ -30,6 +31,8 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "prettier": "^3.8.0",
+    "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

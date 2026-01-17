@@ -2,27 +2,37 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { isProduction } from "@/lib/utils";
-import Link from 'next/link'
+import Link from "next/link";
 
 export const PageDisplay = ({ pages }: { pages: any }) => {
-    return (
+  return (
     <>
       {pages.map((page: any) => (
-        <div key={page.documentId} className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-8 font-sans dark:bg-black dark:text-zinc-50">
+        <div
+          key={page.documentId}
+          className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-8 font-sans dark:bg-black dark:text-zinc-50"
+        >
           <main className="w-full max-w-2xl space-y-8">
             {page ? (
               <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                 <h1 className="mb-2 text-2xl font-semibold">{page.title}</h1>
                 <div className="mb-4 flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                  <span>Published: {new Date(page.publishedAt).toLocaleDateString()}</span>
+                  <span>
+                    Published: {new Date(page.publishedAt).toLocaleDateString()}
+                  </span>
                 </div>
 
-                {page.featuredImage && <Image
-                  src={new URL(page.featuredImage.url, process.env.STRAPI_BASE_API_URL).toString()}
-                  alt={page.featuredImage.alternativeText}
-                  width={500}
-                  height={500}
-                />}
+                {page.featuredImage && (
+                  <Image
+                    src={new URL(
+                      page.featuredImage.url,
+                      process.env.STRAPI_BASE_API_URL,
+                    ).toString()}
+                    alt={page.featuredImage.alternativeText}
+                    width={500}
+                    height={500}
+                  />
+                )}
 
                 <div className="prose dark:prose-invert max-w-none">
                   <ReactMarkdown rehypePlugins={[rehypeRaw]}>
@@ -43,12 +53,16 @@ export const PageDisplay = ({ pages }: { pages: any }) => {
                   </div>
                 )}
 
-                {!isProduction() && <div className="mt-8 border-t pt-4 dark:border-zinc-800">
-                  <h3 className="mb-2 text-sm font-medium uppercase tracking-wider text-zinc-500">Raw Data</h3>
-                  <pre className="overflow-x-auto rounded bg-zinc-950 p-4 text-xs text-zinc-50">
-                    {JSON.stringify(page, null, 2)}
-                  </pre>
-                </div>}
+                {!isProduction() && (
+                  <div className="mt-8 border-t pt-4 dark:border-zinc-800">
+                    <h3 className="mb-2 text-sm font-medium uppercase tracking-wider text-zinc-500">
+                      Raw Data
+                    </h3>
+                    <pre className="overflow-x-auto rounded bg-zinc-950 p-4 text-xs text-zinc-50">
+                      {JSON.stringify(page, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
@@ -60,4 +74,4 @@ export const PageDisplay = ({ pages }: { pages: any }) => {
       ))}
     </>
   );
-}
+};

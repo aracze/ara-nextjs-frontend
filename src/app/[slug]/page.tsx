@@ -2,17 +2,17 @@ import { PageDisplay } from "@/components/page/page-display";
 import { isProduction } from "@/lib/utils";
 
 async function getData(slug: string) {
-    const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-    };
-    if (isProduction()) {
-        headers['Authorization'] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
-    }
-    const res = await fetch(process.env.STRAPI_BASE_API_URL + "/graphql", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-            query: `query {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (isProduction()) {
+    headers["Authorization"] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
+  }
+  const res = await fetch(process.env.STRAPI_BASE_API_URL + "/graphql", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      query: `query {
   pages (filters:  {
      slug: {
       eq: "${slug}"
@@ -34,24 +34,23 @@ async function getData(slug: string) {
     }
   }
 }`,
-        }),
-        cache: "no-store",
-    });
+    }),
+    cache: "no-store",
+  });
 
-    if (!res.ok) {
-        throw new Error("Failed to fetch data");
-    }
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
+  }
 
-    return res.json();
+  return res.json();
 }
 
-
 export default async function Page({
-    params,
+  params,
 }: {
-    params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }) {
-    const { slug } = await params
-    const { data } = await getData(slug)
-    return <PageDisplay pages={data?.pages} />
+  const { slug } = await params;
+  const { data } = await getData(slug);
+  return <PageDisplay pages={data?.pages} />;
 }
