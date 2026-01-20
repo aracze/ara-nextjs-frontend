@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSearchIndex } from "@/scripts/generate-search-index";
+import { getFuse } from "@/lib/search";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
     // Extract search params
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         // Call the generation method
         await generateSearchIndex();
+        getFuse(true);
 
         return NextResponse.json({
             success: true,
