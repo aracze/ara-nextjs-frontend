@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSearchIndex } from "@/scripts/generate-search-index";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     // Extract search params
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
