@@ -24,6 +24,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG STRAPI_BASE_API_URL
+ENV STRAPI_BASE_API_URL=${STRAPI_BASE_API_URL}
+
 RUN npm run generate-search-index
 
 RUN \
