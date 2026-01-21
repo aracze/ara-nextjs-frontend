@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/command";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { ResultList } from "./resultlist/resultlist";
 
 export default function Search() {
     const [query, setQuery] = useState("");
@@ -43,8 +44,18 @@ export default function Search() {
                 setIsOpen(false);
             }
         };
+
+        const handleEscapeKeyup = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                handleClear();
+            }
+        };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keyup", handleEscapeKeyup);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keyup", handleEscapeKeyup);
+        };
     }, []);
 
     const handleClear = () => {
@@ -79,35 +90,7 @@ export default function Search() {
                 </div>
             </Command>
 
-            {isOpen && (
-                <div className="absolute top-16 left-0 right-0 bg-white rounded-lg border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                    <div className="max-h-[400px] overflow-y-auto">
-                        {results.length === 0 ? (
-                            <div className="py-8 text-center text-sm text-gray-500">
-                                No results found for "<span className="font-medium">{query}</span>".
-                            </div>
-                        ) : (
-                            <div className="p-2">
-                                <div className="px-2 py-1.5 text-xs font-medium text-gray-500">Results</div>
-                                {results.map((result: any, index: number) => (
-                                    <Link href={`/${result.item.slug}`} key={result.item.documentId || `result-${index}`}>
-                                        <div
-                                            className="flex flex-col items-start px-4 py-3 cursor-pointer hover:bg-blue-50/50 transition-colors border-b border-gray-50 last:border-0 rounded-md"
-                                        >
-                                            <div className="font-semibold text-blue-600 hover:text-blue-700">{result.item.title}</div>
-                                            {result.item.text && (
-                                                <div className="text-xs text-gray-500 line-clamp-2 mt-1 leading-relaxed">
-                                                    {result.item.text}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            {isOpen && (<ResultList results={results} handleLinkClicked={handleClear} />)}
         </div>
     );
 }

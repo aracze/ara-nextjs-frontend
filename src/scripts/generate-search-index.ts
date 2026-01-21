@@ -2,6 +2,7 @@ import qs from "qs";
 import Fuse from "fuse.js";
 import fs from "fs";
 import path from "path";
+import removeMd from "remove-markdown";
 const strapiUrl = process.env.STRAPI_BASE_API_URL || "http://localhost:1337";
 
 /*
@@ -49,8 +50,8 @@ export async function generateSearchIndex() {
     respData.forEach((page: Record<string, any>) => {
       // Add the page itself to the index
       indexData.push({
-        title: page.attributes?.title || page.title,
-        text: page.attributes?.text || page.text,
+        title: removeMd(page.attributes?.title || page.title),
+        text: removeMd(page.attributes?.text || page.text),
         slug: page.attributes?.slug || page.slug,
         type: "Pages",
       });
