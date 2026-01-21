@@ -93,30 +93,24 @@ export default async function RootLayout({
                 </a>
 
                 {/* Subpages Menu Wrapper - ensures overlapping hit area to prevent collapse */}
-                <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-8 pl-8 hidden group-hover:block z-20">
-                  <div className="flex flex-col min-w-[200px] bg-white/95 backdrop-blur-md rounded-lg shadow-2xl border border-gray-200 overflow-visible ml-2">
-                    {page.children && page.children.length > 0 ? (
-                      page.children.map((child: any) => (
-                        <a
-                          key={child.documentId}
-                          href={child.slug}
-                          className="px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-gray-100 last:border-0"
-                        >
-                          {child.title}
-                        </a>
-                      ))
-                    ) : (
-                      <>
-                        <a href="#" className="px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-gray-100">
-                          Placeholder Subpage 1
-                        </a>
-                        <a href="#" className="px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                          Placeholder Subpage 2
-                        </a>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {
+                  page.children?.length > 0 &&
+                  (
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-8 pl-8 hidden group-hover:block z-20">
+                      <div className="flex flex-col min-w-[200px] bg-white/95 backdrop-blur-md rounded-lg shadow-2xl border border-gray-200 overflow-visible ml-2">
+                        {page.children.map((child: any) => (
+                          <a
+                            key={child.documentId}
+                            href={child.slug}
+                            className="px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-gray-100 last:border-0"
+                          >
+                            {child.title}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }
               </div>
             ))}
           </nav>
