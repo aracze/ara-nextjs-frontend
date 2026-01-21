@@ -3,11 +3,12 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { isProduction } from "@/lib/utils";
 import Link from "next/link";
+import { Page, PageChild } from "@/types/strapi";
 
-export const PageDisplay = ({ pages }: { pages: any }) => {
+export const PageDisplay = ({ pages }: { pages: Page[] }) => {
   return (
     <>
-      {pages.map((page: any) => (
+      {pages.map((page) => (
         <div
           key={page.documentId}
           className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-8 font-sans dark:bg-black dark:text-zinc-50"
@@ -28,7 +29,7 @@ export const PageDisplay = ({ pages }: { pages: any }) => {
                       page.featuredImage.url,
                       process.env.STRAPI_BASE_API_URL,
                     ).toString()}
-                    alt={page.featuredImage.alternativeText}
+                    alt={page.featuredImage.alternativeText || ""}
                     width={500}
                     height={500}
                   />
@@ -44,7 +45,7 @@ export const PageDisplay = ({ pages }: { pages: any }) => {
                   <div className="mt-8">
                     <h2 className="mb-2 text-xl font-semibold">Children</h2>
                     <ul className="list-disc pl-6">
-                      {page.children.map((child: any) => (
+                      {page.children.map((child: PageChild) => (
                         <li key={child.documentId}>
                           <Link href={`/${child.slug}`}>{child.title}</Link>
                         </li>

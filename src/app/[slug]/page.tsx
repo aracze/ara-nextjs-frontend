@@ -1,7 +1,12 @@
-import { PageDisplay } from "@/components/page/page-display";
+import { PageDisplay } from "@/components/layout/page-strapi/page-display";
 import { isProduction } from "@/lib/utils";
+import type { Page } from "@/types/strapi";
 
-async function getData(slug: string) {
+async function getData(slug: string): Promise<{
+  data: {
+    pages: Page[];
+  };
+}> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };

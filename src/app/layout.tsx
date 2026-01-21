@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
 import { isProduction } from "@/lib/utils";
-import { MainMenu } from "@/components/menu/main-menu";
+import { MainMenu } from "@/components/layout/menu/main-menu";
+import Search from "@/components/layout/search/search";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -82,6 +82,9 @@ export default async function RootLayout({
           {
             data.pages?.length > 0 && <MainMenu pages={data.pages} />
           }
+          <div className="fixed bottom-4 right-4">
+            <Search />
+          </div>
           <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
         </div>
       </body>

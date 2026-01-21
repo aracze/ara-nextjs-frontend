@@ -1,7 +1,12 @@
-import { PageDisplay } from "@/components/page/page-display";
+import { PageDisplay } from "@/components/layout/page-strapi/page-display";
 import { isProduction } from "@/lib/utils";
+import type { Page } from "@/types/strapi";
 
-async function getData() {
+async function getData(): Promise<{
+  data: {
+    pages: Page[];
+  };
+}> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -50,5 +55,9 @@ async function getData() {
 export default async function Home() {
   const { data } = await getData();
 
-  return <PageDisplay pages={data?.pages} />;
+  return (
+    <>
+      <PageDisplay pages={data?.pages} />
+    </>
+  );
 }
