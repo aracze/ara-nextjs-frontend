@@ -9,8 +9,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { isProduction } from "@/lib/utils";
-import { Header } from "@/components/layout/header/header";
 import Search from "@/components/layout/search/search";
+import { Header } from "@/components/layout/header/header";
 
 // 1. NASTAVENÍ PÍSEM (Google Fonts)
 // Používá moderní Geist font, proměnné se pak používají v CSS (Tailwind)
@@ -52,40 +52,26 @@ async function getData() {
     method: "POST",
     headers,
     body: JSON.stringify({
-      query: `query {
-  pages (filters:  {
-     parent:  {
-      documentId:  {
-        null: true
-      }        
-     }
-  }) {
-    documentId
-    title
-    slug
-    children {
-      title
-      slug
-      documentId
-    }
-  }
-  global {
-    header {
-      logo {
-        svgCode
-        image {
-          url
-          alternativeText
-        }
-        Link {
-          title
-          href
-          isExternal
-        }
-      }
-    }
-  }
-}`,
+      query: `
+        query {
+          global {
+            header {
+              logo {
+                svgCode
+              }
+            }
+          }
+          pages(filters: { parent: { documentId: { null: true } } }) {
+            documentId
+            title
+            slug
+            children {
+              title
+              slug
+              documentId
+            }
+          }
+        }`,
     }),
     cache: "no-store", // Vypíná mezipaměť (vždy čerstvá data ze Strapi)
   });
@@ -112,21 +98,19 @@ export default async function RootLayout({
   return (
     <html lang="cs">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* A) HLAVIČKA: Fixní modrá lišta nahoře */}
-        {
-          data.global?.header && <Header pages={data.pages} header={data.global?.header} />
-        }
-
-        {/* B) HLAVNÍ OBSAH: Zarovnaný na střed s omezenou šířkou */}
-        <main className="grow w-full max-w-7xl mx-auto p-6 md:p-12">
-          {children}
-        </main>
-
-        {/* C) VYHLEDÁVÁNÍ: Fixní tlačítko vpravo dole */}
-        <div className="fixed bottom-4 right-4 z-40">
-          <Search />
+        {/* HLAVNÍ KONTEJNER: flex rozložení pro menu a obsah */}
+        <div className="flex h-screen flex-row md:flex-col md:overflow-hidden">
+          {data.pages?.length > 0 && (
+            <Header pages={data.pages} header={data.global?.header} />
+          )}
+          {/* B) VYHLEDÁVÁNÍ: Fixní tlačítko vpravo dole */}
+          <div className="fixed bottom-4 right-4">
+            <Search />
+          </div>
+          {/* C) OBSAH STRÁNKY: Zde se zobrazuje samotná stránka */}
+          <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
         </div>
       </body>
     </html>
