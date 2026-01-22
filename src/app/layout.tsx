@@ -109,7 +109,6 @@ export default async function RootLayout({
           <div className="fixed bottom-4 right-4">
             <Search />
           </div>
-          {/* C) OBSAH STRÁNKY: Zde se zobrazuje samotná stránka */}
           <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
         </div>
       </body>

@@ -61,6 +61,6 @@ export default async function Page({
   if (data?.pages.length > 0) {
     return <PageDisplay pages={data?.pages} />;
   } else {
-    notFound()
+    notFound();
   }
 }

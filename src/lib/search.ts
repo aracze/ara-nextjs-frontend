@@ -9,9 +9,9 @@ let fuse: Fuse<any> | null = null;
  * @param forceRefresh - If true, re-initializes the Fuse instance (useful after index regeneration).
  */
 export function getFuse(forceRefresh: boolean = false): Fuse<any> {
-    if (!fuse || forceRefresh) {
-        const searchIndex = Fuse.parseIndex(searchIndexData as any);
-        fuse = new Fuse(searchData, { keys: ["title", "text"] }, searchIndex);
-    }
-    return fuse;
+  if (!fuse || forceRefresh) {
+    const searchIndex = Fuse.parseIndex(searchIndexData as any);
+    fuse = new Fuse(searchData, { keys: ["title", "text"] }, searchIndex);
+  }
+  return fuse;
 }
