@@ -6,7 +6,6 @@ import {
     CommandInput,
 } from "@/components/ui/command";
 import { X } from "lucide-react";
-import Link from "next/link";
 import { ResultList } from "./resultlist/resultlist";
 
 export default function Search() {
