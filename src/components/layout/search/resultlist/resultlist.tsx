@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function ResultList({ results, handleLinkClicked }: { results: any[], handleLinkClicked: () => void }) {
     return (
-        <div className="absolute top-16 left-0 right-0 bg-white rounded-lg border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg border shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
             <div className="max-h-[400px] overflow-y-auto">
                 {results.length === 0 ? (
                     <div className="py-8 text-center text-sm text-gray-500">

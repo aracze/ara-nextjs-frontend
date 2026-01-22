@@ -42,12 +42,6 @@ async function getData() {
     documentId
     title
     slug
-    text
-    publishedAt
-    featuredImage {
-      url
-      alternativeText
-    }
     children {
       title
       slug

@@ -1,6 +1,7 @@
 import { PageDisplay } from "@/components/layout/page-strapi/page-display";
 import { isProduction } from "@/lib/utils";
 import type { Page } from "@/types/strapi";
+import { notFound } from "next/navigation";
 
 async function getData(slug: string): Promise<{
   data: {
@@ -57,5 +58,9 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const { data } = await getData(slug);
-  return <PageDisplay pages={data?.pages} />;
+  if (data?.pages.length > 0) {
+    return <PageDisplay pages={data?.pages} />;
+  } else {
+    notFound()
+  }
 }
