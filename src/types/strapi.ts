@@ -1,6 +1,12 @@
-export interface StrapiImage {
+export interface StrapiMedia {
     url: string;
     alternativeText: string | null;
+}
+
+export interface SharedImageComponent {
+    image: StrapiMedia | null;
+    cloudinary: string | null;
+    featureImageStyleCss: string | null;
 }
 
 export interface NavLink {
@@ -14,7 +20,7 @@ export interface NavLink {
 export interface ImageLink {
     id: number;
     svgCode: string | null;
-    image: StrapiImage | null;
+    image: SharedImageComponent | null;
     Link: NavLink | null;
 }
 
@@ -37,7 +43,7 @@ export interface Page {
     slug: string;
     text: string;
     publishedAt: string;
-    featuredImage: StrapiImage | null;
+    featuredImage: SharedImageComponent | null;
     children: PageChild[];
 }
 

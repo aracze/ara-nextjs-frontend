@@ -31,8 +31,12 @@ async function getData(): Promise<{
     text
     publishedAt
     featuredImage {
-      url
-      alternativeText
+      image {
+        url
+        alternativeText
+      }
+      cloudinary
+      featureImageStyleCss
     }
     children {
       title
