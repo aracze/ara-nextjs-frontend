@@ -8,7 +8,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { isProduction } from "@/lib/utils";
+import { getStrapiURL } from "@/lib/utils";
 import Search from "@/components/layout/search/search";
 import { Header } from "@/components/layout/header/header";
 
@@ -36,11 +36,7 @@ async function getData() {
     "Content-Type": "application/json",
   };
 
-  if (isProduction()) {
-    headers["Authorization"] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
-  }
-
-  const res = await fetch(process.env.STRAPI_BASE_API_URL + "/graphql", {
+  const res = await fetch(getStrapiURL() + "/graphql", {
     method: "POST",
     headers,
     body: JSON.stringify({

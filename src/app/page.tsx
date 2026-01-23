@@ -1,5 +1,5 @@
 import { PageDisplay } from "@/components/layout/page-strapi/page-display";
-import { isProduction } from "@/lib/utils";
+import { getStrapiURL } from "@/lib/utils";
 import type { Page } from "@/types/strapi";
 
 async function getData(): Promise<{
@@ -10,10 +10,7 @@ async function getData(): Promise<{
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  if (isProduction()) {
-    headers["Authorization"] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
-  }
-  const res = await fetch(process.env.STRAPI_BASE_API_URL + "/graphql", {
+  const res = await fetch(getStrapiURL() + "/graphql", {
     method: "POST",
     headers,
     body: JSON.stringify({
