@@ -3,31 +3,31 @@ import { generateSearchIndex } from "@/scripts/generate-search-index";
 import { getFuse } from "@/lib/search";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  // Extract search params
   const { searchParams } = new URL(request.url);
   const params = Object.fromEntries(searchParams.entries());
-  console.log("Search Index Triggered - Request Params:", params);
-
-  // Extract and log headers
-  const headers = Object.fromEntries(request.headers.entries());
-  console.log("Search Index Triggered - Request Headers:", headers);
-
-  // Extract and log body
-  let body = {};
-  try {
-    body = await request.json();
-    console.log("Search Index Triggered - Request Body:", body);
-  } catch (e) {
-    console.log(
-      "Search Index Triggered - Request Body: (empty or invalid JSON)",
-    );
-  }
+  const body = await request.json();
 
   try {
-    // Call the generation method
     await generateSearchIndex();
     getFuse(true);
 
+    return NextResponse.json({
+      success: true,
+      message: "Search index generated successfully",
+      requestedParams: params,
+      requestedBody: body,
+    });
+  } catch (error) {
+    console.error("Error in /api/search-index:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to generate search index",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
+  }
     return NextResponse.json({
       success: true,
       message: "Search index generated successfully",

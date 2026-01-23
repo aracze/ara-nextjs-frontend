@@ -31,23 +31,15 @@ export const metadata: Metadata = {
   description: "Váš průvodce po světě",
 };
 
-/**
- * 3. ZÍSKÁNÍ DAT ZE STRAPI (Server-side Fetch)
- * Funkce se volá při každém požadavku a stahuje data pro hlavní navigaci.
- */
 async function getData() {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  // Přidání autorizace pouze v produkci
   if (isProduction()) {
     headers["Authorization"] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
   }
 
-  // GraphQL dotaz: Stahuje pouze hlavní stránky (ty, co nemají rodiče)
-  // a k nim pak jejich podstránky (children) pro vykreslení menu.
-  // TAKÉ stahuje globální nastavení pro hlavičku (logo, navigace).
   const res = await fetch(process.env.STRAPI_BASE_API_URL + "/graphql", {
     method: "POST",
     headers,
@@ -73,7 +65,6 @@ async function getData() {
           }
         }`,
     }),
-    cache: "no-store", // Vypíná mezipaměť (vždy čerstvá data ze Strapi)
   });
 
   if (!res.ok) {
@@ -83,16 +74,11 @@ async function getData() {
   return res.json();
 }
 
-/**
- * 4. HLAVNÍ KOMPONENTA LAYOUTU
- * @param children - Representuje aktuální stránku, kterou uživatel právě vidí
- */
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Zavoláme Strapi API pro data menu
   const { data } = await getData();
 
   return (

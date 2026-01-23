@@ -18,30 +18,30 @@ async function getData(slug: string): Promise<{
     method: "POST",
     headers,
     body: JSON.stringify({
-      query: `query {
-  pages (filters:  {
-     slug: {
-      eq: "${slug}"
-     }
-  }) {
-    documentId
-    title
-    slug
-    text
-    publishedAt
-    featuredImage {
-      url
-      alternativeText
-    }
-    children {
-      title
-      slug
-      documentId
-    }
-  }
-}`,
+      query: `
+        query {
+          pages (filters:  {
+            slug: {
+              eq: "${slug}"
+            }
+          }) {
+            documentId
+            title
+            slug
+            text
+            publishedAt
+            featuredImage {
+              url
+              alternativeText
+            }
+            children {
+              title
+              slug
+              documentId
+            }
+          }
+        }`,
     }),
-    cache: "no-store",
   });
 
   if (!res.ok) {
