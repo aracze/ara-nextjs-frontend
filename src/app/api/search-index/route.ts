@@ -28,21 +28,4 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 500 },
     );
   }
-    return NextResponse.json({
-      success: true,
-      message: "Search index generated successfully",
-      requestedParams: params,
-      requestedBody: body,
-    });
-  } catch (error) {
-    console.error("Error in /api/search-index:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to generate search index",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
-  }
 }

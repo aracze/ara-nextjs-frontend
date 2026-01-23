@@ -3,6 +3,10 @@ import Fuse from "fuse.js";
 import fs from "fs";
 import path from "path";
 import removeMd from "remove-markdown";
+import type { PageData } from "@/types/search";
+import type { ServiceData } from "@/types/search";
+import type { ShowcaseData } from "@/types/search";
+
 const strapiUrl = process.env.STRAPI_BASE_API_URL || "http://localhost:1337";
 
 /*
@@ -27,15 +31,16 @@ export async function generateSearchIndex() {
     const err = await resp.text();
 
     try {
-      const errResp = JSON.parse(err);
+      const errResp: unknown = JSON.parse(err);
       console.log(errResp);
     } catch (err) {
       console.log(`There was a problem fetching data from Strapi: ${err}`);
     }
   } else {
-    let indexData: Record<string, any>[] = [];
-    let respData: Record<string, any>[] = [];
-    const body = await resp.json();
+    const indexData: Record<string, unknown>[] = [];
+    let respData: PageData[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: any = await resp.json();
 
     if (body?.error) {
       console.log(
@@ -43,26 +48,28 @@ export async function generateSearchIndex() {
       );
       return;
     } else {
-      respData = body?.data || body;
+      respData = (body?.data || body) as PageData[];
     }
 
     // The search index data is created here
-    respData.forEach((page: Record<string, any>) => {
+    respData.forEach((page: PageData) => {
       // Add the page itself to the index
       indexData.push({
-        title: removeMd(page.attributes?.title || page.title),
-        text: removeMd(page.attributes?.text || page.text),
-        slug: page.attributes?.slug || page.slug,
+        title: removeMd(
+          ((page.attributes?.title || page.title) as string) || "",
+        ),
+        text: removeMd(((page.attributes?.text || page.text) as string) || ""),
+        slug: ((page.attributes?.slug || page.slug) as string) || "",
         type: "Pages",
       });
 
-      if (page["services"]) {
-        page["services"].forEach((service: Record<string, any>) => {
-          if (service["showcases"]) {
-            service["showcases"].forEach((showcase: Record<string, any>) => {
+      if (page.services) {
+        page.services.forEach((service: ServiceData) => {
+          if (service.showcases) {
+            service.showcases.forEach((showcase: ShowcaseData) => {
               showcase["type"] = "Showcases";
 
-              for (let key of [
+              for (const key of [
                 "id",
                 "cover_image",
                 "createdAt",
@@ -78,7 +85,7 @@ export async function generateSearchIndex() {
 
           service["type"] = "Services";
 
-          for (let key of [
+          for (const key of [
             "showcases",
             "cover_image",
             "id",
@@ -102,7 +109,10 @@ export async function generateSearchIndex() {
 
     // The search list and search index are written
     // to src/lib/data here
-    const writeToFile = (fileName: string, fileData: Record<string, any>) => {
+    const writeToFile = (
+      fileName: string,
+      fileData: Record<string, unknown> | unknown,
+    ) => {
       const dataDir = path.resolve(process.cwd(), "src/data");
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });

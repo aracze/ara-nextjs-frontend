@@ -1,10 +1,12 @@
 import Link from "next/link";
+import type { FuseResult } from "fuse.js";
+import type { SearchItem } from "@/types/search";
 
 export function ResultList({
   results,
   handleLinkClicked,
 }: {
-  results: any[];
+  results: FuseResult<SearchItem>[];
   handleLinkClicked: () => void;
 }) {
   return (
@@ -19,7 +21,7 @@ export function ResultList({
             <div className="px-2 py-1.5 text-xs font-medium text-gray-500">
               Výsledky
             </div>
-            {results.map((result: any, index: number) => (
+            {results.map((result: FuseResult<SearchItem>, index: number) => (
               <Link
                 href={`/${result.item.slug}`}
                 key={result.item.documentId || `result-${index}`}

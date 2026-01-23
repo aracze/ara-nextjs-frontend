@@ -1,15 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { FuseResult } from "fuse.js";
+import type { SearchItem } from "@/types/search";
 import { Command, CommandInput } from "@/components/ui/command";
 import { X } from "lucide-react";
 import { ResultList } from "./resultlist/resultlist";
 
 export default function Search() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<FuseResult<SearchItem>[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleClear = () => {
+    setQuery("");
+    setResults([]);
+    setIsOpen(false);
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -56,12 +64,6 @@ export default function Search() {
       document.removeEventListener("keyup", handleEscapeKeyup);
     };
   }, []);
-
-  const handleClear = () => {
-    setQuery("");
-    setResults([]);
-    setIsOpen(false);
-  };
 
   return (
     <div ref={containerRef} className="relative max-w-sm w-full z-50">

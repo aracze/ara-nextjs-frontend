@@ -1,7 +1,6 @@
 import { PageDisplay } from "@/components/layout/page-strapi/page-display";
 import { isProduction } from "@/lib/utils";
 import type { Page } from "@/types/strapi";
-import redis from "@/lib/redis";
 
 async function getData(): Promise<{
   data: {
