@@ -1,9 +1,56 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Page, GlobalHeader } from "@/types/strapi";
 
-export async function MainMenu({ pages }: { pages: [] }) {
+export async function MainMenu({ pages, header }: { pages: Page[], header?: GlobalHeader }) {
+    const logo = header?.logo;
+
     return (
-        <nav className="flex h-24 rounded-lg bg-white/80 backdrop-blur-sm relative gap-4 px-4">
-            {pages?.map((page: any) => (
+        <nav className="flex h-24 rounded-lg bg-white/80 backdrop-blur-sm relative gap-4 px-4 items-center">
+            {/* LOGO */}
+            {logo && (
+                <div className="flex items-center mr-4">
+                    {logo.Link ? (
+                        <Link href={logo.Link.href} title={logo.Link.title} className="flex items-center">
+                            {logo.svgCode ? (
+                                <div
+                                    className="h-12 w-auto flex items-center"
+                                    dangerouslySetInnerHTML={{ __html: logo.svgCode }}
+                                />
+                            ) : logo.image && (
+                                <Image
+                                    src={new URL(logo.image.url, process.env.STRAPI_BASE_API_URL).toString()}
+                                    alt={logo.image.alternativeText || logo.Link.title}
+                                    width={120}
+                                    height={40}
+                                    className="h-10 w-auto object-contain"
+                                />
+                            )}
+                        </Link>
+                    ) : (
+                        <div className="flex items-center">
+                            {logo.svgCode ? (
+                                <div
+                                    className="h-12 w-auto flex items-center"
+                                    dangerouslySetInnerHTML={{ __html: logo.svgCode }}
+                                />
+                            ) : logo.image && (
+                                <Image
+                                    src={new URL(logo.image.url, process.env.STRAPI_BASE_API_URL).toString()}
+                                    alt={logo.image.alternativeText || "Logo"}
+                                    width={120}
+                                    height={40}
+                                    className="h-10 w-auto object-contain"
+                                />
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+
+            {/* STRÁNKY (původní dlaždice) */}
+            {pages?.map((page: Page) => (
                 <div key={page.documentId} className="relative group h-full flex items-center">
                     <Link
                         href={page.slug}
@@ -37,6 +84,7 @@ export async function MainMenu({ pages }: { pages: [] }) {
                     }
                 </div>
             ))}
+
         </nav>
     );
 }
