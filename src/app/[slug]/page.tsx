@@ -31,7 +31,6 @@ async function getData(slug: string): Promise<{
         url
         alternativeText
       }
-      cloudinary
       featureImageStyleCss
     }
     children {

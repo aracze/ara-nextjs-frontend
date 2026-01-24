@@ -5,7 +5,6 @@ export interface StrapiMedia {
 
 export interface SharedImageComponent {
   image: StrapiMedia | null;
-  cloudinary: string | null;
   featureImageStyleCss: string | null;
 }
 

@@ -23,36 +23,35 @@ export const PageDisplay = ({ pages }: { pages: Page[] }) => {
                   </span>
                 </div>
 
-                {page.featuredImage && (
+                {page.featuredImage && page.featuredImage.image && (
                   <Image
                     src={
-                      page.featuredImage.cloudinary ??
-                      (page.featuredImage.image?.url
+                      page.featuredImage.image.url.startsWith("/")
                         ? new URL(
-                          page.featuredImage.image.url,
-                          process.env.STRAPI_BASE_API_URL,
-                        ).toString()
-                        : "")
+                            page.featuredImage.image.url,
+                            process.env.STRAPI_BASE_API_URL,
+                          ).toString()
+                        : page.featuredImage.image.url
                     }
-                    alt={page.featuredImage.image?.alternativeText || ""}
+                    alt={page.featuredImage.image.alternativeText || ""}
                     width={500}
                     height={500}
                     style={
                       page.featuredImage.featureImageStyleCss
                         ? (page.featuredImage.featureImageStyleCss
-                          .split(";")
-                          .reduce((acc: any, rule) => {
-                            const [k, v] = rule.split(":");
-                            if (k && v) {
-                              const key = k
-                                .trim()
-                                .replace(/-./g, (c) =>
-                                  c.substr(1).toUpperCase(),
-                                );
-                              acc[key] = v.trim();
-                            }
-                            return acc;
-                          }, {}) as React.CSSProperties)
+                            .split(";")
+                            .reduce((acc: any, rule) => {
+                              const [k, v] = rule.split(":");
+                              if (k && v) {
+                                const key = k
+                                  .trim()
+                                  .replace(/-./g, (c) =>
+                                    c.substr(1).toUpperCase(),
+                                  );
+                                acc[key] = v.trim();
+                              }
+                              return acc;
+                            }, {}) as React.CSSProperties)
                         : undefined
                     }
                   />
