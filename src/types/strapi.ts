@@ -4,6 +4,8 @@ export interface StrapiMedia {
 }
 
 export interface SharedImageComponent {
+  alternativeText: string;
+  url: string | URL;
   image: StrapiMedia | null;
   featureImageStyleCss: string | null;
 }

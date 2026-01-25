@@ -40,7 +40,7 @@ export const PageDisplay = ({ pages }: { pages: Page[] }) => {
                       page.featuredImage.featureImageStyleCss
                         ? (page.featuredImage.featureImageStyleCss
                             .split(";")
-                            .reduce((acc: any, rule) => {
+                            .reduce((acc: Record<string, string>, rule) => {
                               const [k, v] = rule.split(":");
                               if (k && v) {
                                 const key = k
