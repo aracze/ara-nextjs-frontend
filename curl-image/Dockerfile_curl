@@ -1,4 +1,0 @@
-FROM alpine/curl:8.1.2
-
-# Set all defaults at runtime in the shell command
-CMD ["sh", "-c", "FRONTEND_BASE_URL=\"${FRONTEND_BASE_URL:-https://example.com}\" && TARGET_URL=\"${FRONTEND_BASE_URL}/api/weather\" && AUTH_TOKEN=\"${AUTH_TOKEN:-my-default-token}\" && echo 'TARGET_URL:' \"$TARGET_URL\" && curl -v -X PUT -H \"Authorization: Bearer $AUTH_TOKEN\" \"$TARGET_URL\""]
