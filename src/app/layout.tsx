@@ -8,9 +8,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { getStrapiURL } from "@/lib/utils";
+import { isProduction } from "@/lib/utils";
 import Search from "@/components/layout/search/search";
 import { Header } from "@/components/layout/header/header";
+import { WebVitals } from "@/components/features/web-vitals";
+import { fetchParentPages } from "@/lib/strapi";
 
 // 1. NASTAVENÍ PÍSEM (Google Fonts)
 // Používá moderní Geist font, proměnné se pak používají v CSS (Tailwind)
@@ -27,61 +29,27 @@ const geistMono = Geist_Mono({
 // 2. SEO METADATA
 // Definují <title> a <meta name="description"> v hlavičce webu
 export const metadata: Metadata = {
-  title: "Ara.cz - Cestovní průvodce",
+  title: {
+    template: "%s | Ara.cz - Cestovní průvodce",
+    default: "Ara.cz - Cestovní průvodce",
+  },
   description: "Váš průvodce po světě",
 };
-
-async function getData() {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  const res = await fetch(getStrapiURL() + "/graphql", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      query: `
-        query {
-          global {
-            header {
-              logo {
-                svgCode
-              }
-            }
-          }
-          pages(filters: { parent: { documentId: { null: true } } }) {
-            documentId
-            title
-            slug
-            children {
-              title
-              slug
-              documentId
-            }
-          }
-        }`,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
-  }
-
-  return res.json();
-}
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { data } = await getData();
+  const { data } = await fetchParentPages();
 
   return (
     <html lang="cs">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {!isProduction() && <WebVitals />}
+
         {/* HLAVNÍ KONTEJNER: flex rozložení pro menu a obsah */}
         <div className="flex h-screen flex-row md:flex-col md:overflow-hidden">
           {data.pages?.length > 0 && (

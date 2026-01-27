@@ -25,6 +25,7 @@ export async function generateSearchIndex() {
   );
   const resp = await fetch(`${strapiUrl}/api/pages?${query}`, {
     method: "GET",
+    cache: "no-store",
   });
 
   if (!resp.ok) {

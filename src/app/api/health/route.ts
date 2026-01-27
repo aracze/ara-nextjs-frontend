@@ -29,7 +29,7 @@ export async function GET(): Promise<NextResponse> {
     }
 
     return new NextResponse(null, { status: 200 });
-  } catch (error) {
+  } catch {
     return new NextResponse(null, { status: 503 });
   }
 }

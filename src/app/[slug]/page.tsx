@@ -1,7 +1,12 @@
 import { PageDisplay } from "@/components/layout/page-strapi/page-display";
 import { getStrapiURL } from "@/lib/utils";
 import type { Page } from "@/types/strapi";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+type Props = {
+  params: Promise<{ slug: string }>;
+};
 
 async function getData(slug: string): Promise<{
   data: {
@@ -50,11 +55,19 @@ async function getData(slug: string): Promise<{
   return res.json();
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const { data } = await getData(slug);
+  if (data?.pages.length > 0) {
+    return {
+      title: data.pages[0].title,
+    };
+  } else {
+    notFound();
+  }
+}
+
+export default async function Page({ params }: Props) {
   const { slug } = await params;
   const { data } = await getData(slug);
   if (data?.pages.length > 0) {
