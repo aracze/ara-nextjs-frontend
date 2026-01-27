@@ -1,11 +1,11 @@
-import { Page } from "@/types/strapi";
+import { Page, PagesResponse } from "@/types/strapi";
 import { getStrapiURL } from "./utils";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 
-export const fetchParentPages = cache(
+const fetchParentPagesCache = cache(
   unstable_cache(
-    async () => {
+    async (): Promise<PagesResponse> => {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
@@ -27,6 +27,15 @@ export const fetchParentPages = cache(
             documentId
             title
             slug
+            text
+            publishedAt
+            featuredImage {
+              image {
+                url
+                alternativeText
+              }
+              featureImageStyleCss
+            }
             children {
               title
               slug
@@ -48,22 +57,21 @@ export const fetchParentPages = cache(
   ),
 );
 
-export const fetchPageBySlug = (slug: string) =>
-  cache(
-    unstable_cache(
-      async (): Promise<{
-        data: {
-          pages: Page[];
-        };
-      }> => {
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-        };
-        const res = await fetch(getStrapiURL() + "/graphql", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            query: `query {
+const fetchPageBySlugCache = cache((slug: string) =>
+  unstable_cache(
+    async (): Promise<{
+      data: {
+        pages: Page[];
+      };
+    }> => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const res = await fetch(getStrapiURL() + "/graphql", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          query: `query {
   pages (filters:  {
      slug: {
       eq: "${slug}"
@@ -88,16 +96,19 @@ export const fetchPageBySlug = (slug: string) =>
     }
   }
 }`,
-          }),
-        });
+        }),
+      });
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch data");
-        }
+      if (!res.ok) {
+        throw new Error("Failed to fetch data");
+      }
 
-        return res.json();
-      },
-      [slug],
-      { revalidate: 10, tags: ["page_" + slug] },
-    ),
-  );
+      return res.json();
+    },
+    [slug],
+    { revalidate: 10, tags: ["page_" + slug] },
+  ),
+);
+
+export const fetchPageBySlug = (slug: string) => fetchPageBySlugCache(slug)();
+export const fetchParentPages = () => fetchParentPagesCache();
