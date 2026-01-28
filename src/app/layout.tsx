@@ -12,7 +12,7 @@ import { isProduction } from "@/lib/utils";
 import Search from "@/components/layout/search/search";
 import { Header } from "@/components/layout/header/header";
 import { WebVitals } from "@/components/features/web-vitals";
-import { fetchParentPages } from "@/lib/strapi";
+import { fetchRootPages } from "@/lib/strapi";
 
 // 1. NASTAVENÍ PÍSEM (Google Fonts)
 // Používá moderní Geist font, proměnné se pak používají v CSS (Tailwind)
@@ -41,7 +41,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { data } = await fetchParentPages();
+  const { data } = await fetchRootPages();
 
   return (
     <html lang="cs">

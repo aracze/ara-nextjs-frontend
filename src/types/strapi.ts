@@ -56,3 +56,42 @@ export interface PagesResponse {
     } | null;
   };
 }
+
+export interface StrapiEvent {
+  event: string;
+  createdAt: string;
+  model: string;
+  uid: string;
+  entry: PageEntry;
+}
+
+interface PageEntry {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  category: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  fullSlug: string;
+  includeInChildUrlPaths: null;
+  parent: PageParent;
+  children: any[]; // Array of page-like objects (incomplete structure)
+  featuredImage: null;
+}
+
+interface PageParent {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  category: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  fullSlug: string;
+  includeInChildUrlPaths: boolean | null;
+}

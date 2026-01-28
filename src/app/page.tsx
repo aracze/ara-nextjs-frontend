@@ -1,8 +1,8 @@
 import { PageDisplay } from "@/components/layout/page-strapi/page-display";
-import { fetchParentPages } from "@/lib/strapi";
+import { fetchRootPages } from "@/lib/strapi";
 
 export default async function Home() {
-  const { data } = await fetchParentPages();
+  const { data } = await fetchRootPages();
 
   return (
     <>

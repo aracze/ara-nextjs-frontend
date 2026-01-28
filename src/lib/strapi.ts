@@ -4,10 +4,10 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import redis from "./redis";
 
-const fetchParentPagesCache = cache(
+const fetchRootPagesCache = cache(
   unstable_cache(
     async (): Promise<PagesResponse> => {
-      const pageJson = await redis.get("parent_pages");
+      const pageJson = await redis.get("root_pages");
       if (pageJson) {
         return JSON.parse(pageJson);
       }
@@ -57,11 +57,11 @@ const fetchParentPagesCache = cache(
       }
 
       const data = await res.json();
-      await redis.set("parent_pages", JSON.stringify(data));
+      await redis.set("root_pages", JSON.stringify(data));
       return data;
     },
-    ["parent_pages"],
-    { revalidate: 10, tags: ["parent_pages"] },
+    ["root_pages"],
+    { revalidate: 10, tags: ["root_pages"] },
   ),
 );
 
@@ -127,4 +127,4 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
 
 export const fetchPageByFullSlug = (fullSlug: string) =>
   fetchPageByFullSlugCache(fullSlug)();
-export const fetchParentPages = () => fetchParentPagesCache();
+export const fetchRootPages = () => fetchRootPagesCache();
