@@ -21,6 +21,9 @@ COPY . .
 ARG STRAPI_BASE_API_URL
 ENV STRAPI_BASE_API_URL=${STRAPI_BASE_API_URL}
 
+ARG REDIS_URL
+ENV REDIS_URL=${REDIS_URL}
+
 RUN npm run generate-search-index
 
 RUN npm run build
