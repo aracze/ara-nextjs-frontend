@@ -23,7 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { slug } = await params;
   const fullSlug = slug.join("/");
-  console.log("slug", fullSlug);
   const { data } = await fetchPageByFullSlug(fullSlug);
   if (data?.pages.length > 0) {
     return <PageDisplay pages={data?.pages} />;
