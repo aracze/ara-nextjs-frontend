@@ -26,7 +26,7 @@ const fetchParentPagesCache = cache(
           pages(filters: { parent: { documentId: { null: true } } }) {
             documentId
             title
-            slug
+            fullSlug
             text
             publishedAt
             featuredImage {
@@ -38,7 +38,7 @@ const fetchParentPagesCache = cache(
             }
             children {
               title
-              slug
+              fullSlug
               documentId
             }
           }
@@ -57,7 +57,7 @@ const fetchParentPagesCache = cache(
   ),
 );
 
-const fetchPageBySlugCache = cache((slug: string) =>
+const fetchPageByFullSlugCache = cache((fullSlug: string) =>
   unstable_cache(
     async (): Promise<{
       data: {
@@ -73,13 +73,13 @@ const fetchPageBySlugCache = cache((slug: string) =>
         body: JSON.stringify({
           query: `query {
   pages (filters:  {
-     slug: {
-      eq: "${slug}"
+     fullSlug: {
+      eq: "${fullSlug}"
      }
   }) {
     documentId
     title
-    slug
+    fullSlug
     text
     publishedAt
     featuredImage {
@@ -91,7 +91,7 @@ const fetchPageBySlugCache = cache((slug: string) =>
     }
     children {
       title
-      slug
+      fullSlug
       documentId
     }
   }
@@ -105,10 +105,11 @@ const fetchPageBySlugCache = cache((slug: string) =>
 
       return res.json();
     },
-    [slug],
-    { revalidate: 10, tags: ["page_" + slug] },
+    [fullSlug],
+    { revalidate: 10, tags: ["page_" + fullSlug] },
   ),
 );
 
-export const fetchPageBySlug = (slug: string) => fetchPageBySlugCache(slug)();
+export const fetchPageByFullSlug = (fullSlug: string) =>
+  fetchPageByFullSlugCache(fullSlug)();
 export const fetchParentPages = () => fetchParentPagesCache();

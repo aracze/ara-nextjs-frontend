@@ -56,7 +56,7 @@ export function Header({
                 className="relative group h-full flex items-center"
               >
                 <Link
-                  href={page.slug}
+                  href={`/${page.fullSlug}`}
                   className="hover:text-white/80 transition-colors uppercase tracking-wider"
                 >
                   {page.title}
@@ -68,7 +68,7 @@ export function Header({
                     {page.children.map((child) => (
                       <Link
                         key={child.documentId}
-                        href={child.slug}
+                        href={`/${child.fullSlug}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3f6c]"
                       >
                         {child.title}

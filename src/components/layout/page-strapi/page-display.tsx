@@ -69,7 +69,7 @@ export const PageDisplay = ({ pages }: { pages: Page[] }) => {
                     <ul className="list-disc pl-6">
                       {page.children.map((child: PageChild) => (
                         <li key={child.documentId}>
-                          <Link href={`/${child.slug}`}>{child.title}</Link>
+                          <Link href={`/${child.fullSlug}`}>{child.title}</Link>
                         </li>
                       ))}
                     </ul>
