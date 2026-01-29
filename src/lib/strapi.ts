@@ -2,12 +2,12 @@ import { Page, PagesResponse } from "@/types/strapi";
 import { getStrapiURL } from "./utils";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import redis from "./redis";
+import { getCache, setCache } from "./redis";
 
 const fetchRootPagesCache = cache(
   unstable_cache(
     async (): Promise<PagesResponse> => {
-      const pageJson = await redis.get("root_pages");
+      const pageJson = await getCache("root_pages");
       if (pageJson) {
         return JSON.parse(pageJson);
       }
@@ -57,7 +57,7 @@ const fetchRootPagesCache = cache(
       }
 
       const data = await res.json();
-      await redis.set("root_pages", JSON.stringify(data));
+      await setCache("root_pages", JSON.stringify(data));
       return data;
     },
     ["root_pages"],
@@ -72,7 +72,7 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
         pages: Page[];
       };
     }> => {
-      const pageJson = await redis.get(fullSlug);
+      const pageJson = await getCache(fullSlug);
       if (pageJson) {
         return JSON.parse(pageJson);
       }
@@ -117,7 +117,7 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
       }
 
       const data = await res.json();
-      await redis.set(fullSlug, JSON.stringify(data));
+      await setCache(fullSlug, JSON.stringify(data));
       return data;
     },
     [fullSlug],
