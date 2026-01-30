@@ -29,6 +29,9 @@ const fetchRootPagesCache = cache(
               }
             }
           }
+          homepage {
+            title
+          }
           pages(filters: { parent: { documentId: { null: true } } }) {
             documentId
             title

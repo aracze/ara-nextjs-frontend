@@ -3,6 +3,10 @@ export interface StrapiMedia {
   alternativeText: string | null;
 }
 
+export interface Homepage {
+  title: string;
+}
+
 export interface SharedImageComponent {
   alternativeText: string;
   url: string | URL;
@@ -54,6 +58,7 @@ export interface PagesResponse {
     global: {
       header: GlobalHeader;
     } | null;
+    homepage: Homepage | null;
   };
 }
 

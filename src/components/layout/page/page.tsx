@@ -3,15 +3,17 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { isProduction } from "@/lib/utils";
 import Link from "next/link";
-import { Page, PageChild } from "@/types/strapi";
+import { Page as StrapiPage, PageChild } from "@/types/strapi";
 
 /**
- * PageDisplay Component
+ * Page Component
  * --------------------
  * Renders a premium page layout featuring a full-width hero section,
  * dynamic content area, and responsive design elements.
  */
-export const PageDisplay = ({ pages }: { pages: Page[] }) => {
+export const Page = ({ pages }: { pages: StrapiPage[] }) => {
+  if (!pages || pages.length === 0) return null;
+
   return (
     <div className="flex flex-col bg-white overflow-x-hidden transition-all duration-500">
       {pages.map((page) => {

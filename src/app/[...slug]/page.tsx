@@ -1,4 +1,4 @@
-import { PageDisplay } from "@/components/layout/page-strapi/page-display";
+import { Page } from "@/components/layout/page/page";
 import { fetchPageByFullSlug } from "@/lib/strapi";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function Page({ params }: Props) {
+export default async function PageRoute({ params }: Props) {
   const { slug } = await params;
   const fullSlug = slug.join("/");
   const { data } = await fetchPageByFullSlug(fullSlug);
   if (data?.pages.length > 0) {
-    return <PageDisplay pages={data?.pages} />;
+    return <Page pages={data?.pages} />;
   } else {
     notFound();
   }
