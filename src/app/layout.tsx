@@ -9,7 +9,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { isProduction } from "@/lib/utils";
-import Search from "@/components/layout/search/search";
 import { Header } from "@/components/layout/header/header";
 import { WebVitals } from "@/components/features/web-vitals";
 import { fetchRootPages } from "@/lib/strapi";
@@ -55,11 +54,7 @@ export default async function RootLayout({
           {data.pages?.length > 0 && (
             <Header pages={data.pages} header={data.global?.header} />
           )}
-          {/* B) VYHLEDÁVÁNÍ: Fixní tlačítko vpravo dole */}
-          <div className="fixed bottom-4 right-4">
-            <Search />
-          </div>
-          <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+          <div className="grow md:overflow-y-auto w-full">{children}</div>
         </div>
       </body>
     </html>

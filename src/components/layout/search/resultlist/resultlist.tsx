@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { FuseResult } from "fuse.js";
 import type { SearchItem } from "@/types/search";
+import { MapPin } from "lucide-react";
 
 export function ResultList({
   results,
@@ -9,39 +10,42 @@ export function ResultList({
   results: FuseResult<SearchItem>[];
   handleLinkClicked: () => void;
 }) {
+  if (results.length === 0) return null;
+
   return (
-    <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg border shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
-      <div className="max-h-[400px] overflow-y-auto">
-        {results.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-500">
-            Žádné výsledky pro hledání.
-          </div>
-        ) : (
-          <div className="p-2">
-            <div className="px-2 py-1.5 text-xs font-medium text-gray-500">
-              Výsledky
-            </div>
-            {results.map((result: FuseResult<SearchItem>, index: number) => (
-              <Link
-                href={`/${result.item.slug}`}
-                key={result.item.documentId || `result-${index}`}
-                onClick={() => handleLinkClicked()}
-              >
-                <div className="flex flex-col items-start px-4 py-3 cursor-pointer hover:bg-blue-50/50 transition-colors border-b border-gray-50 last:border-0 rounded-md">
-                  <div className="font-semibold text-blue-600 hover:text-blue-700">
-                    {result.item.title}
-                  </div>
-                  {result.item.text && (
-                    <div className="text-xs text-gray-500 line-clamp-2 mt-1 leading-relaxed">
-                      {result.item.text}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col animate-in fade-in slide-in-from-top-2 duration-300 pt-2">
+      {results
+        .slice(0, 10)
+        .map((result: FuseResult<SearchItem>, index: number) => {
+          // Simple attempt to highlight query in title if we want, but keeping it simple for now
+          return (
+            <Link
+              href={`/${result.item.slug}`}
+              key={result.item.documentId || `result-${index}`}
+              onClick={() => handleLinkClicked()}
+              className="group flex items-center py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <div className="w-10 flex justify-center shrink-0">
+                <MapPin
+                  className="w-5 h-5 text-[#1a3f6c]"
+                  fill="#1a3f6c"
+                  fillOpacity={0.1}
+                  strokeWidth={2.5}
+                />
+              </div>
+              <div className="ml-2 flex items-baseline gap-2">
+                <span className="font-bold text-gray-900 group-hover:text-[#215491] transition-colors text-base">
+                  {result.item.title}
+                </span>
+                {result.item.text && (
+                  <span className="text-sm text-gray-400 line-clamp-1 hidden md:inline">
+                    {result.item.text.replace(/[#*]/g, "").slice(0, 100)}
+                  </span>
+                )}
+              </div>
+            </Link>
+          );
+        })}
     </div>
   );
 }
