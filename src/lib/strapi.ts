@@ -80,31 +80,22 @@ const fetchRootPagesCache = cache(
   ),
 );
 
-const fetchPageByFullSlugCache = cache((fullSlug: string) =>
-  unstable_cache(
-    async (): Promise<{
-      data: {
-        pages: Page[];
-      };
-    }> => {
-      const pageJson = await getCache(fullSlug);
-      if (pageJson) {
-        return JSON.parse(pageJson);
-      }
+export const fetchPageByFullSlug = async (
+  fullSlug: string,
+): Promise<{ data: { pages: Page[] } }> => {
+  console.log(`[Strapi] RAW FETCH for: ${fullSlug}`);
 
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      const res = await fetch(getStrapiURL() + "/graphql", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          query: `query {
-  pages (filters:  {
-     fullSlug: {
-      eq: "${fullSlug}"
-     }
-  }) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  const res = await fetch(getStrapiURL() + "/graphql", {
+    method: "POST",
+    headers,
+    cache: "no-store", // Vynutí stažení přímo ze Strapi
+    body: JSON.stringify({
+      query: `query {
+  pages (filters: { fullSlug: { eq: "${fullSlug}" } }) {
     documentId
     title
     fullSlug
@@ -136,26 +127,24 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
     }
   }
 }`,
-        }),
-      });
+    }),
+  });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch data");
-      }
+  if (!res.ok) {
+    throw new Error("Failed to fetch data from Strapi");
+  }
 
-      const data = await res.json();
-      await setCache(fullSlug, JSON.stringify(data));
-      return data;
-    },
-    [fullSlug],
-    { revalidate: 10, tags: ["page_" + fullSlug] },
-  ),
-);
+  const result = await res.json();
+  console.log(
+    `[Strapi] Received articles for ${fullSlug}:`,
+    result?.data?.pages?.[0]?.articles
+      ? result.data.pages[0].articles.length
+      : "NONE",
+  );
+  return result;
+};
 
-export const fetchPageByFullSlug = (fullSlug: string) =>
-  fetchPageByFullSlugCache(fullSlug)();
-
-const fetchArticleBySlugCache = cache((slug: string) =>
+const fetchArticleBySlugCache = cache((slug: string, parentSlug?: string) =>
   unstable_cache(
     async (): Promise<{
       data: {
@@ -165,12 +154,18 @@ const fetchArticleBySlugCache = cache((slug: string) =>
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
+
+      // If we have a parentSlug, we want to ensure the article is linked to that page
+      const parentFilter = parentSlug
+        ? `, pages: { fullSlug: { eq: "${parentSlug}" } }`
+        : "";
+
       const res = await fetch(getStrapiURL() + "/graphql", {
         method: "POST",
         headers,
         body: JSON.stringify({
           query: `query {
-  articles (filters: { slug: { eq: "${slug}" } }) {
+  articles (filters: { slug: { eq: "${slug}" } ${parentFilter} }) {
     documentId
     title
     text
@@ -194,12 +189,12 @@ const fetchArticleBySlugCache = cache((slug: string) =>
 
       return res.json();
     },
-    ["article_" + slug],
+    ["article_" + slug + "_" + (parentSlug || "any")],
     { revalidate: 10, tags: ["article_" + slug] },
   ),
 );
 
-export const fetchArticleBySlug = (slug: string) =>
-  fetchArticleBySlugCache(slug)();
+export const fetchArticleBySlug = (slug: string, parentSlug?: string) =>
+  fetchArticleBySlugCache(slug, parentSlug)();
 
 export const fetchRootPages = () => fetchRootPagesCache();

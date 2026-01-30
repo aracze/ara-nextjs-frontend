@@ -6,10 +6,12 @@ import { getStrapiURL } from "@/lib/utils";
 
 interface ArticlesProps {
   articles: Article[];
+  parentFullSlug?: string;
 }
 
 export const ArticlesList: React.FC<ArticlesProps> = ({
   articles: articlesProp,
+  parentFullSlug,
 }) => {
   // Ensure we have an array even if Strapi returns a single object (due to relation type)
   const articles = Array.isArray(articlesProp)
@@ -38,10 +40,14 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
                 : article.featuredImage.image.url
               : null;
 
+            const articleUrl = parentFullSlug
+              ? `/${parentFullSlug}/${article.slug}`
+              : `/blog/${article.slug}`;
+
             return (
               <Link
                 key={article.documentId}
-                href={`/blog/${article.slug}`}
+                href={articleUrl}
                 className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100/50 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] transition-all duration-500 transform hover:-translate-y-2"
               >
                 <div className="relative h-72 w-full overflow-hidden">

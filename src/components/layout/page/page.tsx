@@ -188,8 +188,18 @@ export const Page = ({ pages }: { pages: StrapiPage[] }) => {
             </main>
 
             {/* 3. ARTICLES SECTION */}
+            {(() => {
+              console.log(
+                `[Frontend] Rendering page ${page.title}, articles count:`,
+                page.articles?.length || 0,
+              );
+              return null;
+            })()}
             {page.articles && page.articles.length > 0 && (
-              <ArticlesList articles={page.articles} />
+              <ArticlesList
+                articles={page.articles}
+                parentFullSlug={page.fullSlug}
+              />
             )}
 
             {/* Debug Raw Data Footer (Only in Local/Dev) */}
