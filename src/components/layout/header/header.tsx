@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Page, GlobalHeader } from "@/types/strapi";
-import Search from "../search/search";
+import Search from "@/components/features/search/search";
 
 export function Header({
   pages,

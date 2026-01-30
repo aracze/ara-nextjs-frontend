@@ -1,4 +1,4 @@
-import { Page, PagesResponse } from "@/types/strapi";
+import { Page, PagesResponse, Article } from "@/types/strapi";
 import { getStrapiURL } from "./utils";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
@@ -49,6 +49,18 @@ const fetchRootPagesCache = cache(
               title
               fullSlug
               documentId
+            }
+            articles {
+              documentId
+              title
+              slug
+              text
+              featuredImage {
+                image {
+                  url
+                  alternativeText
+                }
+              }
             }
           }
         }`,
@@ -110,6 +122,18 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
       fullSlug
       documentId
     }
+    articles {
+      documentId
+      title
+      slug
+      text
+      featuredImage {
+        image {
+          url
+          alternativeText
+        }
+      }
+    }
   }
 }`,
         }),
@@ -130,4 +154,52 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
 
 export const fetchPageByFullSlug = (fullSlug: string) =>
   fetchPageByFullSlugCache(fullSlug)();
+
+const fetchArticleBySlugCache = cache((slug: string) =>
+  unstable_cache(
+    async (): Promise<{
+      data: {
+        articles: Article[];
+      };
+    }> => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const res = await fetch(getStrapiURL() + "/graphql", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          query: `query {
+  articles (filters: { slug: { eq: "${slug}" } }) {
+    documentId
+    title
+    text
+    slug
+    category
+    publishedAt
+    featuredImage {
+      image {
+        url
+        alternativeText
+      }
+    }
+  }
+}`,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch article data");
+      }
+
+      return res.json();
+    },
+    ["article_" + slug],
+    { revalidate: 10, tags: ["article_" + slug] },
+  ),
+);
+
+export const fetchArticleBySlug = (slug: string) =>
+  fetchArticleBySlugCache(slug)();
+
 export const fetchRootPages = () => fetchRootPagesCache();

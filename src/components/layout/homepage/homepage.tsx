@@ -1,4 +1,4 @@
-import Search from "../search/search";
+import Search from "@/components/features/search/search";
 import { Homepage as HomepageType } from "@/types/strapi";
 
 export const Homepage = ({ homepage }: { homepage?: HomepageType | null }) => {

@@ -4,6 +4,7 @@ import rehypeRaw from "rehype-raw";
 import { isProduction } from "@/lib/utils";
 import Link from "next/link";
 import { Page as StrapiPage, PageChild } from "@/types/strapi";
+import { ArticlesList } from "@/components/features/articles-list";
 
 /**
  * Page Component
@@ -185,6 +186,11 @@ export const Page = ({ pages }: { pages: StrapiPage[] }) => {
                 )}
               </aside>
             </main>
+
+            {/* 3. ARTICLES SECTION */}
+            {page.articles && page.articles.length > 0 && (
+              <ArticlesList articles={page.articles} />
+            )}
 
             {/* Debug Raw Data Footer (Only in Local/Dev) */}
             {!isProduction() && (

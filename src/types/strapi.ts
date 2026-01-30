@@ -42,6 +42,16 @@ export interface PageChild {
   documentId: string;
 }
 
+export interface Article {
+  documentId: string;
+  title: string;
+  slug: string;
+  text: string;
+  category: string;
+  publishedAt: string;
+  featuredImage: SharedImageComponent | null;
+}
+
 export interface Page {
   documentId: string;
   title: string;
@@ -50,6 +60,7 @@ export interface Page {
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
   children: PageChild[];
+  articles: Article[];
 }
 
 export interface PagesResponse {
