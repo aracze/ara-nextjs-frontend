@@ -21,49 +21,49 @@ const fetchRootPagesCache = cache(
         headers,
         body: JSON.stringify({
           query: `
-        query {
-          global {
-            header {
-              logo {
-                svgCode
-              }
-            }
-          }
-          homepage {
-            title
-          }
-          pages(filters: { parent: { documentId: { null: true } } }) {
-            documentId
-            title
-            fullSlug
-            text
-            publishedAt
-            featuredImage {
-              image {
-                url
-                alternativeText
-              }
-              featureImageStyleCss
-            }
-            children {
-              title
-              fullSlug
-              documentId
-            }
-            articles {
-              documentId
-              title
-              slug
-              text
-              featuredImage {
-                image {
-                  url
-                  alternativeText
+            query {
+              global {
+                header {
+                  logo {
+                    svgCode
+                  }
                 }
               }
-            }
-          }
-        }`,
+              homepage {
+                title
+              }
+              pages(filters: { parent: { documentId: { null: true } } }) {
+                documentId
+                title
+                fullSlug
+                text
+                publishedAt
+                featuredImage {
+                  image {
+                    url
+                    alternativeText
+                  }
+                  featureImageStyleCss
+                }
+                children {
+                  title
+                  fullSlug
+                  documentId
+                }
+                articles {
+                  documentId
+                  title
+                  slug
+                  text
+                  featuredImage {
+                    image {
+                      url
+                      alternativeText
+                    }
+                  }
+                }
+              }
+            }`,
         }),
       });
 
@@ -80,69 +80,70 @@ const fetchRootPagesCache = cache(
   ),
 );
 
-export const fetchPageByFullSlug = async (
-  fullSlug: string,
-): Promise<{ data: { pages: Page[] } }> => {
-  console.log(`[Strapi] RAW FETCH for: ${fullSlug}`);
+const fetchPageByFullSlugCache = cache((fullSlug: string) =>
+  unstable_cache(
+    async (): Promise<{ data: { pages: Page[] } }> => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+      const response = await fetch(getStrapiURL() + "/graphql", {
+        method: "POST",
+        headers,
+        cache: "no-store",
+        body: JSON.stringify({
+          query: `query {
+            pages (filters: { fullSlug: { eq: "${fullSlug}" } }) {
+              documentId
+              title
+              fullSlug
+              text
+              publishedAt
+              featuredImage {
+                image {
+                  url
+                  alternativeText
+                }
+                featureImageStyleCss
+              }
+              children {
+                title
+                fullSlug
+                documentId
+              }
+              articles {
+                documentId
+                title
+                slug
+                text
+                featuredImage {
+                  image {
+                    url
+                    alternativeText
+                  }
+                }
+              }
+            }
+          }`,
+        }),
+      });
 
-  const res = await fetch(getStrapiURL() + "/graphql", {
-    method: "POST",
-    headers,
-    cache: "no-store", // Vynutí stažení přímo ze Strapi
-    body: JSON.stringify({
-      query: `query {
-  pages (filters: { fullSlug: { eq: "${fullSlug}" } }) {
-    documentId
-    title
-    fullSlug
-    text
-    publishedAt
-    featuredImage {
-      image {
-        url
-        alternativeText
+      if (!response.ok) {
+        throw new Error("Failed to fetch data from Strapi");
       }
-      featureImageStyleCss
-    }
-    children {
-      title
-      fullSlug
-      documentId
-    }
-    articles {
-      documentId
-      title
-      slug
-      text
-      featuredImage {
-        image {
-          url
-          alternativeText
-        }
+
+      const result = await response.json();
+
+      if (result.errors?.length > 0) {
+        throw new Error(result.errors[0].message);
       }
-    }
-  }
-}`,
-    }),
-  });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch data from Strapi");
-  }
-
-  const result = await res.json();
-  console.log(
-    `[Strapi] Received articles for ${fullSlug}:`,
-    result?.data?.pages?.[0]?.articles
-      ? result.data.pages[0].articles.length
-      : "NONE",
-  );
-  return result;
-};
+      return result;
+    },
+    ["page_" + fullSlug],
+    { revalidate: 10, tags: ["page_" + fullSlug] },
+  ),
+);
 
 const fetchArticleBySlugCache = cache((slug: string, parentSlug?: string) =>
   unstable_cache(
@@ -160,34 +161,40 @@ const fetchArticleBySlugCache = cache((slug: string, parentSlug?: string) =>
         ? `, pages: { fullSlug: { eq: "${parentSlug}" } }`
         : "";
 
-      const res = await fetch(getStrapiURL() + "/graphql", {
+      const response = await fetch(getStrapiURL() + "/graphql", {
         method: "POST",
         headers,
         body: JSON.stringify({
           query: `query {
-  articles (filters: { slug: { eq: "${slug}" } ${parentFilter} }) {
-    documentId
-    title
-    text
-    slug
-    category
-    publishedAt
-    featuredImage {
-      image {
-        url
-        alternativeText
-      }
-    }
-  }
-}`,
+            articles (filters: { slug: { eq: "${slug}" } ${parentFilter} }) {
+              documentId
+              title
+              text
+              slug
+              category
+              publishedAt
+              featuredImage {
+                image {
+                  url
+                  alternativeText
+                }
+              }
+            }
+          }`,
         }),
       });
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error("Failed to fetch article data");
       }
 
-      return res.json();
+      const result = await response.json();
+
+      if (result.errors?.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
+
+      return result;
     },
     ["article_" + slug + "_" + (parentSlug || "any")],
     { revalidate: 10, tags: ["article_" + slug] },
@@ -196,5 +203,8 @@ const fetchArticleBySlugCache = cache((slug: string, parentSlug?: string) =>
 
 export const fetchArticleBySlug = (slug: string, parentSlug?: string) =>
   fetchArticleBySlugCache(slug, parentSlug)();
+
+export const fetchPageByFullSlug = (slug: string) =>
+  fetchPageByFullSlugCache(slug)();
 
 export const fetchRootPages = () => fetchRootPagesCache();

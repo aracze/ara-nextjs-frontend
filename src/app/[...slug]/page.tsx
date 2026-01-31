@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // 1. Try fetching as a Page
   const { data: pageData } = await fetchPageByFullSlug(fullSlug);
   if (pageData?.pages.length > 0) {
-    return { title: pageData.pages[0].title };
+    return { title: pageData.pages[0]?.title };
   }
 
   // 2. If not a page, try fetching as an Article under a parent
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     );
 
     if (articleData?.articles.length > 0) {
-      return { title: articleData.articles[0].title };
+      return { title: articleData.articles[0]?.title };
     }
   }
 
