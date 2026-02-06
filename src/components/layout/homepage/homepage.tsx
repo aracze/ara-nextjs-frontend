@@ -1,22 +1,22 @@
 import { StaticHeroWave } from "@/components/features/static-hero-wave";
 import { Homepage as HomepageType } from "@/types/strapi";
-import { StaticHeroOverlay } from "./static-hero-overlay";
+import { StaticHeroOverlay } from "@/components/features/static-hero-overlay";
 import { StaticHeroTitle } from "./static-hero-title";
-import { StaticHeroImage } from "./static-hero-image";
+import { StaticHeroImage } from "@/components/features/static-hero-image";
 
 export const Homepage = ({ homepage }: { homepage?: HomepageType | null }) => {
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative w-full h-[350px] md:h-[450px] overflow-hidden bg-[#3b444f]">
+      <section className="relative w-full h-[350px] overflow-hidden bg-[#3b444f]">
         <StaticHeroImage
-          heroImage={
+          imageUrl={
             "https://res.cloudinary.com/ara/image/upload/c_fit,w_1600,q_auto/homepage.jpg"
           }
         />
 
         <StaticHeroTitle title={"Najdi si svůj cíl"} />
 
-        <StaticHeroOverlay />
+        <StaticHeroOverlay filterId="blurFilterHome" />
 
         <StaticHeroWave />
       </section>

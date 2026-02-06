@@ -5,6 +5,9 @@ import { Article as ArticleType } from "@/types/strapi";
 import { getStrapiURL } from "@/lib/utils";
 import Link from "next/link";
 import { ChevronLeft, Calendar, Tag } from "lucide-react";
+import { StaticHeroOverlay } from "@/components/features/static-hero-overlay";
+import { StaticHeroImage } from "@/components/features/static-hero-image";
+import { StaticHeroWave } from "@/components/features/static-hero-wave";
 
 interface ArticleProps {
   article: ArticleType;
@@ -30,12 +33,10 @@ export const Article: React.FC<ArticleProps> = ({ article }) => {
     <div className="bg-white min-h-screen">
       {/* Article Header / Hero */}
       <section className="relative w-full h-[50vh] md:h-[60vh] overflow-hidden">
-        {imageUrl && (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${imageUrl})` }}
-          />
-        )}
+        <StaticHeroImage
+          imageUrl={imageUrl}
+          styleCss={article.featuredImage?.featureImageStyleCss || undefined}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
         <div className="relative z-10 h-full max-w-5xl mx-auto px-4 flex flex-col justify-end pb-12 md:pb-20">
@@ -63,6 +64,10 @@ export const Article: React.FC<ArticleProps> = ({ article }) => {
             {article.title}
           </h1>
         </div>
+        <StaticHeroOverlay
+          filterId={`blurFilter-article-${article.documentId}`}
+        />
+        <StaticHeroWave />
       </section>
 
       {/* Article Content */}
