@@ -72,7 +72,7 @@ export const Article: React.FC<ArticleProps> = ({ article }) => {
 
       {/* Article Content */}
       <main className="max-w-4xl mx-auto px-4 py-16 md:py-24">
-        <div className="prose prose-lg md:prose-xl max-w-none prose-headings:text-[#1a3f6c] prose-a:text-[#215491] text-gray-700 leading-relaxed font-serif">
+        <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
           <ReactMarkdown rehypePlugins={[rehypeRaw]}>
             {article.text}
           </ReactMarkdown>

@@ -6,8 +6,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:
+    var(--font-open-sans), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: var(--font-poppins), var(--font-sans);
+  --font-opensans: var(--font-open-sans);
+  --font-poppins: var(--font-poppins);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -121,6 +125,68 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading tracking-tight;
+  }
+
+  /* Core typography based on ara.cz */
+  .prose p {
+    font-size: 17px;
+    line-height: 2.2; /* 220% for standard text readability */
+    color: #353535;
+    margin-bottom: 20px;
+    margin-top: 0;
+  }
+
+  .prose p:first-of-type {
+    font-size: 20px;
+    line-height: 1.8; /* 180% for lead paragraphs */
+    color: #76818a;
+    margin-bottom: 20px;
+  }
+
+  /* Headings inside prose content */
+  .prose h1 {
+    font-size: 36px;
+    line-height: 1.05;
+    margin-top: 10px;
+    margin-bottom: 25px;
+    @apply font-heading font-bold;
+  }
+
+  .prose h2 {
+    font-size: 28px;
+    line-height: 1.5;
+    color: #004d94;
+    margin-top: 50px;
+    margin-bottom: 40px;
+    @apply font-heading font-bold;
+  }
+
+  .prose h3 {
+    font-size: 21px;
+    line-height: 1.5;
+    color: #314b69;
+    margin-top: 33px;
+    margin-bottom: 13px;
+    @apply font-heading font-semibold;
+  }
+
+  /* List styles to match line heights */
+  .prose ul,
+  .prose ol {
+    margin-bottom: 20px;
+  }
+
+  .prose li {
+    font-size: 17px;
+    line-height: 2.2;
+    color: #353535;
+    margin-bottom: 8px;
   }
 }

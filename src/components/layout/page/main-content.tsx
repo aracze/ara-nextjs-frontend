@@ -14,7 +14,7 @@ export const MainContent = ({
     <main className="max-w-7xl mx-auto px-4 md:px-12 py-12 md:py-20 flex flex-col md:flex-row gap-16 lg:gap-24">
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        <div className="prose prose-lg md:prose-xl max-w-none text-gray-700 leading-relaxed font-sans prose-headings:text-[#1a3f6c] prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
+        <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
           <ReactMarkdown rehypePlugins={[rehypeRaw]}>{text}</ReactMarkdown>
         </div>
       </div>
@@ -28,10 +28,10 @@ export const MainContent = ({
           </h3>
           <div className="space-y-8">
             <div className="flex flex-col">
-              <span className="text-xs uppercase tracking-widest text-[#215491] font-bold">
+              <span className="text-xs uppercase tracking-widest text-[#215491] font-bold font-heading">
                 Lokální čas
               </span>
-              <span className="text-3xl font-light text-gray-800 tabular-nums mt-1 uppercase">
+              <span className="text-3xl font-light text-gray-800 tabular-nums mt-1 uppercase font-heading">
                 pátek{" "}
                 {new Date().toLocaleTimeString("cs-CZ", {
                   hour: "2-digit",
@@ -42,10 +42,10 @@ export const MainContent = ({
             </div>
             <div className="h-[1px] bg-gray-100" />
             <div className="flex flex-col">
-              <span className="text-xs uppercase tracking-widest text-[#215491] font-bold">
+              <span className="text-xs uppercase tracking-widest text-[#215491] font-bold font-heading">
                 Měnový kurz
               </span>
-              <div className="mt-2 text-2xl font-light text-gray-800">
+              <div className="mt-2 text-2xl font-light text-gray-800 font-heading">
                 1 HRK = 3,27 CZK
               </div>
             </div>
@@ -64,7 +64,7 @@ export const MainContent = ({
                     className="flex items-center group"
                   >
                     <span className="w-2 h-2 rounded-full bg-[#215491]/30 mr-3 group-hover:bg-[#215491] transition-colors" />
-                    <span className="text-gray-700 font-semibold group-hover:text-[#215491] transition-colors">
+                    <span className="text-gray-700 font-semibold group-hover:text-[#215491] transition-colors font-heading">
                       {child.title}
                     </span>
                   </Link>

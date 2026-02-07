@@ -68,7 +68,7 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
                   )}
                   {/* Glassmorphism Badge */}
                   <div className="absolute top-4 left-4 backdrop-blur-md bg-white/70 px-4 py-1.5 rounded-full border border-white/50 shadow-sm">
-                    <span className="text-[10px] font-bold text-[#1a3f6c] uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-[#1a3f6c] uppercase tracking-wider font-heading">
                       Článek
                     </span>
                   </div>
@@ -81,7 +81,7 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
                   <div className="text-gray-500 line-clamp-3 text-[15px] leading-relaxed mb-8 font-light">
                     {article.text}
                   </div>
-                  <div className="mt-auto flex items-center text-[#215491] font-bold text-[13px] tracking-[0.1em] uppercase group/read">
+                  <div className="mt-auto flex items-center text-[#215491] font-bold text-[13px] tracking-[0.1em] uppercase group/read font-heading">
                     <span>Číst více</span>
                     <div className="ml-3 w-8 h-[1px] bg-[#215491]/30 transition-all duration-300 group-hover/read:w-12 group-hover/read:bg-[#215491]"></div>
                   </div>

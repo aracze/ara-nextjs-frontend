@@ -6,7 +6,7 @@
  */
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Open_Sans, Poppins } from "next/font/google";
 import "./globals.css";
 import { isProduction } from "@/lib/utils";
 import { Header } from "@/components/layout/header/header";
@@ -14,15 +14,17 @@ import { WebVitals } from "@/components/features/web-vitals";
 import { fetchRootPages } from "@/lib/strapi";
 
 // 1. NASTAVENÍ PÍSEM (Google Fonts)
-// Používá moderní Geist font, proměnné se pak používají v CSS (Tailwind)
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const openSans = Open_Sans({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-open-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const poppins = Poppins({
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-poppins",
+  display: "swap",
 });
 
 // 2. SEO METADATA
@@ -43,10 +45,8 @@ export default async function RootLayout({
   const { data } = await fetchRootPages();
 
   return (
-    <html lang="cs">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="cs" className={`${openSans.variable} ${poppins.variable}`}>
+      <body className="antialiased">
         {!isProduction() && <WebVitals />}
 
         {/* HLAVNÍ KONTEJNER: flex rozložení pro menu a obsah */}

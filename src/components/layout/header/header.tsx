@@ -24,7 +24,7 @@ export function Header({
     >
       {/* Background Gradient overlay like Grails :after */}
       <div
-        className={`absolute inset-0 h-[65px] bg-gradient-to-b from-black/40 to-transparent z-[-1] transition-opacity duration-300 ${activeDropdown ? "opacity-0" : "opacity-100"}`}
+        className={`absolute inset-0 h-[65px] bg-gradient-to-b from-black/50 to-transparent z-[-1] transition-opacity duration-300 ${activeDropdown ? "opacity-0" : "opacity-100"}`}
       />
 
       {/* MAIN NAVBAR */}
@@ -75,7 +75,7 @@ export function Header({
                 >
                   <Link
                     href={`/${page.fullSlug}`}
-                    className="px-4 hover:text-white transition-colors uppercase tracking-wider text-sm font-bold"
+                    className="px-4 hover:text-white transition-colors uppercase tracking-wider text-sm font-bold font-heading"
                   >
                     {page.title}
                   </Link>
@@ -103,7 +103,7 @@ export function Header({
 
           <div className="ml-auto flex items-center gap-4">
             <Search />
-            <button className="hidden lg:block px-5 py-1.5 border-2 border-white/50 rounded-full text-white text-[13px] font-bold hover:bg-white hover:text-[#215491] transition-all uppercase tracking-wider">
+            <button className="hidden lg:block px-5 py-1.5 border-2 border-white/50 rounded-full text-white text-[13px] font-bold hover:bg-white hover:text-[#215491] transition-all uppercase tracking-wider font-heading">
               Rady na cestu
             </button>
           </div>
