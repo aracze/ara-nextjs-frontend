@@ -11,7 +11,7 @@ export const MainContent = ({
   children: PageChild[];
 }) => {
   return (
-    <main className="max-w-7xl mx-auto px-4 md:px-12 py-12 md:py-20 flex flex-col md:flex-row gap-16 lg:gap-24">
+    <main className="max-w-7xl mx-auto px-4 md:px-18 py-12 md:py-20 flex flex-col md:flex-row gap-16 lg:gap-24">
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">

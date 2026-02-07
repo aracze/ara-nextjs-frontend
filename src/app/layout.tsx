@@ -16,6 +16,7 @@ import { fetchRootPages } from "@/lib/strapi";
 // 1. NASTAVENÍ PÍSEM (Google Fonts)
 const openSans = Open_Sans({
   subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-open-sans",
   display: "swap",
 });
@@ -50,11 +51,11 @@ export default async function RootLayout({
         {!isProduction() && <WebVitals />}
 
         {/* HLAVNÍ KONTEJNER: flex rozložení pro menu a obsah */}
-        <div className="flex h-screen flex-row md:flex-col md:overflow-hidden">
+        <div className="flex flex-col min-h-screen">
           {data.pages?.length > 0 && (
             <Header pages={data.pages} header={data.global?.header} />
           )}
-          <div className="grow md:overflow-y-auto w-full">{children}</div>
+          <div className="grow w-full">{children}</div>
         </div>
       </body>
     </html>

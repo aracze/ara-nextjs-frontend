@@ -3,9 +3,32 @@
 import { useState, useEffect, useRef } from "react";
 import type { FuseResult } from "fuse.js";
 import type { SearchItem } from "@/types/search";
-import { X, Search as SearchIcon } from "lucide-react";
+import { X } from "lucide-react";
 import { ResultList } from "./resultlist/resultlist";
 import { createPortal } from "react-dom";
+
+const SearchGraphic = ({
+  className = "w-6 h-6",
+  strokeWidth = 1.5,
+}: {
+  className?: string;
+  strokeWidth?: number;
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={strokeWidth}
+    stroke="currentColor"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+    />
+  </svg>
+);
 
 interface SearchProps {
   variant?: "header" | "homepage";
@@ -107,7 +130,7 @@ export default function Search({ variant = "header" }: SearchProps) {
       <div ref={containerRef} className="w-full max-w-2xl relative">
         <div className="bg-white rounded-lg shadow-2xl flex items-center p-1 md:p-2 group/home-search border-2 border-transparent focus-within:border-[#215491]/20 transition-all">
           <div className="flex-1 px-4 flex items-center gap-3">
-            <SearchIcon className="w-5 h-5 text-gray-400" />
+            <SearchGraphic className="w-5 h-5 text-gray-400" />
             <input
               placeholder="Pojďme objevovat..."
               value={query}
@@ -165,7 +188,7 @@ export default function Search({ variant = "header" }: SearchProps) {
         className="p-3 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300"
         aria-label="Otevřít vyhledávání"
       >
-        <SearchIcon className="w-6 h-6" strokeWidth={2.5} />
+        <SearchGraphic className="w-5 h-5" strokeWidth={3} />
       </button>
 
       {isExpanded &&
@@ -177,7 +200,7 @@ export default function Search({ variant = "header" }: SearchProps) {
             />
             <div className="relative bg-white shadow-2xl animate-in slide-in-from-top-4 duration-300">
               <div className="max-w-7xl mx-auto px-4 md:px-12 py-4 flex items-center gap-4">
-                <SearchIcon
+                <SearchGraphic
                   className="w-6 h-6 text-gray-400 shrink-0"
                   strokeWidth={2.5}
                 />

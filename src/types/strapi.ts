@@ -40,6 +40,7 @@ export interface PageChild {
   title: string;
   fullSlug: string;
   documentId: string;
+  children?: PageChild[];
 }
 
 export interface Article {

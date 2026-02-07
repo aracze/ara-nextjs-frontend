@@ -49,6 +49,11 @@ const fetchRootPagesCache = cache(
                   title
                   fullSlug
                   documentId
+                  children {
+                    title
+                    fullSlug
+                    documentId
+                  }
                 }
                 articles {
                   documentId

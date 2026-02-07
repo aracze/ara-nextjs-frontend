@@ -16,21 +16,23 @@ export function Header({
   const logo = header?.logo;
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
+  // Najdeme aktuálně aktivní stránku pro mega menu
+  const activePage = pages?.find((p) => p.documentId === activeDropdown);
+
   return (
     <header
       className={`absolute top-0 left-0 w-full z-[200] transition-colors duration-300 ${
         activeDropdown ? "bg-[#215491]" : "bg-transparent"
       } group/header`}
     >
-      {/* Background Gradient overlay like Grails :after */}
       <div
-        className={`absolute inset-0 h-[65px] bg-gradient-to-b from-black/50 to-transparent z-[-1] transition-opacity duration-300 ${activeDropdown ? "opacity-0" : "opacity-100"}`}
+        className={`absolute inset-0 h-[65px] bg-gradient-to-b from-black/50 to-transparent z-[-1] transition-opacity duration-300 ${
+          activeDropdown ? "opacity-0" : "opacity-100"
+        }`}
       />
 
-      {/* MAIN NAVBAR */}
       <nav className="h-[65px] border-b border-white/10 flex items-center">
         <div className="max-w-7xl mx-auto px-4 md:px-12 flex items-center w-full gap-8">
-          {/* LOGO */}
           {logo && (
             <Link href="/" className="flex items-center shrink-0">
               {logo.svgCode ? (
@@ -60,14 +62,13 @@ export function Header({
             </Link>
           )}
 
-          {/* NAV LINKS (Top-level Pages) */}
           <div className="hidden md:flex items-center gap-2 h-full text-white/90 font-semibold">
             {pages?.map((page) => {
               const hasChildren = page.children?.length > 0;
               return (
                 <div
                   key={page.documentId}
-                  className="relative h-[65px] flex items-center"
+                  className="h-[65px] flex items-center"
                   onMouseEnter={() =>
                     hasChildren && setActiveDropdown(page.documentId)
                   }
@@ -75,27 +76,13 @@ export function Header({
                 >
                   <Link
                     href={`/${page.fullSlug}`}
-                    className="px-4 hover:text-white transition-colors uppercase tracking-wider text-sm font-bold font-heading"
+                    className="px-4 text-white hover:text-gray-100 transition-colors tracking-wide text-[15px] font-semibold font-heading flex items-center gap-1"
                   >
                     {page.title}
+                    {hasChildren && (
+                      <span className="inline-block border-white hover:border-gray-100 border-t-4 border-l-4 border-r-4 border-l-transparent border-r-transparent border-white/60" />
+                    )}
                   </Link>
-
-                  {/* Dropdown for subpages */}
-                  {hasChildren && activeDropdown === page.documentId && (
-                    <div className="absolute top-[65px] left-0 bg-white shadow-2xl min-w-[200px] py-2 rounded-b-lg border-t-2 border-[#1A4579] animate-in fade-in slide-in-from-top-1 duration-200">
-                      <div className="flex flex-col">
-                        {page.children.map((child) => (
-                          <Link
-                            key={child.documentId}
-                            href={`/${child.fullSlug}`}
-                            className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#215491] transition-all"
-                          >
-                            {child.title}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -109,6 +96,31 @@ export function Header({
           </div>
         </div>
       </nav>
+
+      {/* Mega Menu - Vykresleno pouze jednou mimo loop pro čistší DOM a lepší pozicování */}
+      {activePage && activePage.children?.length > 0 && (
+        <div
+          className="absolute left-0 right-0 w-full bg-[#215490] border-b-2 border-[#1A4579] shadow-2xl transition-all duration-300 top-[65px] z-[150] pointer-events-auto animate-in fade-in slide-in-from-top-1 duration-200"
+          onMouseEnter={() => setActiveDropdown(activePage.documentId)}
+          onMouseLeave={() => setActiveDropdown(null)}
+        >
+          <div className="bg-white py-2">
+            <div className="max-w-7xl mx-auto px-4 md:px-12 py-10">
+              <div className="grid grid-cols-5 gap-y-4 gap-x-12">
+                {activePage.children.map((child) => (
+                  <Link
+                    key={child.documentId}
+                    href={`/${child.fullSlug}`}
+                    className="text-[15px] text-gray-800 py-1 transition-all inline-block w-full [text-shadow:1px_2px_3px_rgb(255,255,255)] hover:text-white hover:bg-[#3C6EAA] hover:px-4 hover:-mx-4 hover:rounded-sm hover:no-underline hover:shadow-none hover:[text-shadow:none]"
+                  >
+                    {child.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
