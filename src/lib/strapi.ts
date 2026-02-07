@@ -36,6 +36,7 @@ const fetchRootPagesCache = cache(
                 documentId
                 title
                 fullSlug
+                category
                 text
                 publishedAt
                 featuredImage {
@@ -48,10 +49,12 @@ const fetchRootPagesCache = cache(
                 children {
                   title
                   fullSlug
+                  category
                   documentId
                   children {
                     title
                     fullSlug
+                    category
                     documentId
                   }
                 }
@@ -85,69 +88,73 @@ const fetchRootPagesCache = cache(
   ),
 );
 
-const fetchPageByFullSlugCache = cache((fullSlug: string) =>
-  unstable_cache(
-    async (): Promise<{ data: { pages: Page[] } }> => {
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
+const fetchPageByFullSlugCache = cache(
+  async (fullSlug: string): Promise<{ data: { pages: Page[] } }> => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
 
-      const response = await fetch(getStrapiURL() + "/graphql", {
-        method: "POST",
-        headers,
-        cache: "no-store",
-        body: JSON.stringify({
-          query: `query {
-            pages (filters: { fullSlug: { eq: "${fullSlug}" } }) {
-              documentId
+    const response = await fetch(getStrapiURL() + "/graphql", {
+      method: "POST",
+      headers,
+      cache: "no-store",
+      body: JSON.stringify({
+        query: `query {
+          pages (filters: { fullSlug: { eq: "${fullSlug}" } }) {
+            documentId
+            title
+            fullSlug
+            category
+            text
+            publishedAt
+            featuredImage {
+              image {
+                url
+                alternativeText
+              }
+              featureImageStyleCss
+            }
+            children {
               title
               fullSlug
-              text
-              publishedAt
+              category
+              documentId
               featuredImage {
                 image {
                   url
                   alternativeText
                 }
-                featureImageStyleCss
               }
-              children {
-                title
-                fullSlug
-                documentId
-              }
-              articles {
-                documentId
-                title
-                slug
-                text
-                featuredImage {
-                  image {
-                    url
-                    alternativeText
-                  }
+            }
+            articles {
+              documentId
+              title
+              slug
+              text
+              featuredImage {
+                image {
+                  url
+                  alternativeText
                 }
               }
             }
-          }`,
-        }),
-      });
+          }
+        }`,
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch data from Strapi");
-      }
+    if (!response.ok) {
+      throw new Error("Failed to fetch data from Strapi");
+    }
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (result.errors?.length > 0) {
-        throw new Error(result.errors[0].message);
-      }
+    if (result.errors?.length > 0) {
+      throw new Error(result.errors[0].message);
+    }
 
-      return result;
-    },
-    ["page_" + fullSlug],
-    { revalidate: 10, tags: ["page_" + fullSlug] },
-  ),
+    return result;
+  },
 );
 
 const fetchArticleBySlugCache = cache((slug: string, parentSlug?: string) =>
@@ -210,6 +217,6 @@ export const fetchArticleBySlug = (slug: string, parentSlug?: string) =>
   fetchArticleBySlugCache(slug, parentSlug)();
 
 export const fetchPageByFullSlug = (slug: string) =>
-  fetchPageByFullSlugCache(slug)();
+  fetchPageByFullSlugCache(slug);
 
 export const fetchRootPages = () => fetchRootPagesCache();

@@ -3,6 +3,7 @@ import { ArticlesList } from "@/components/features/articles-list";
 import { HeroSection } from "./hero-section";
 import { Subnavigation } from "./subnavigation";
 import { MainContent } from "./main-content";
+import { PlacesToVisit } from "./places-to-visit";
 
 export const Page = ({ pages }: { pages: StrapiPage[] }) => {
   if (!pages || pages.length === 0) return null;
@@ -34,6 +35,9 @@ export const Page = ({ pages }: { pages: StrapiPage[] }) => {
 
             {/* 2. CONTENT AREA */}
             <MainContent text={page.text} children={page.children} />
+
+            {/* 3. PLACES TO VISIT SECTION */}
+            <PlacesToVisit children={page.children} />
 
             {page.articles && page.articles.length > 0 && (
               <ArticlesList

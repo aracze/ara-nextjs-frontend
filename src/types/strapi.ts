@@ -40,6 +40,8 @@ export interface PageChild {
   title: string;
   fullSlug: string;
   documentId: string;
+  category?: string;
+  featuredImage?: SharedImageComponent | null;
   children?: PageChild[];
 }
 
@@ -57,6 +59,7 @@ export interface Page {
   documentId: string;
   title: string;
   fullSlug: string;
+  category?: string;
   text: string;
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
