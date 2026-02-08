@@ -5,7 +5,6 @@ import { getFuse } from "@/lib/search";
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const params = Object.fromEntries(searchParams.entries());
-  const body = await request.json();
 
   try {
     await generateSearchIndex();
@@ -15,7 +14,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       success: true,
       message: "Search index generated successfully",
       requestedParams: params,
-      requestedBody: body,
     });
   } catch (error) {
     console.error("Error in /api/search-index:", error);

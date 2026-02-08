@@ -71,7 +71,8 @@ const fetchRootPagesCache = cache(
                   }
                 }
               }
-            }`,
+            }
+            `,
         }),
       });
 
@@ -101,50 +102,52 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
         cache: "no-store",
         body: JSON.stringify({
           query: `query {
-          pages (filters: { fullSlug: { eq: "${fullSlug}" } }) {
-            documentId
-            title
-            fullSlug
-            category
-            text
-            publishedAt
-            featuredImage {
-              image {
-                url
-                alternativeText
-              }
-              featureImageStyleCss
-            }
-            children {
+            pages(filters: { fullSlug: { eq: "${fullSlug}" } }) {
+              documentId
               title
               fullSlug
               category
-              documentId
+              text
+              publishedAt
               featuredImage {
                 image {
                   url
                   alternativeText
                 }
+                featureImageStyleCss
               }
-            }
-            articles {
-              documentId
-              title
-              slug
-              text
-              featuredImage {
-                image {
-                  url
-                  alternativeText
+              children {
+                title
+                fullSlug
+                category
+                documentId
+                featuredImage {
+                  image {
+                    url
+                    alternativeText
+                  }
+                }
+              }
+              articles {
+                documentId
+                title
+                slug
+                text
+                featuredImage {
+                  image {
+                    url
+                    alternativeText
+                  }
                 }
               }
             }
           }
-        }`,
+          `,
         }),
       });
 
       if (!response.ok) {
+        console.log(response);
         throw new Error("Failed to fetch data from Strapi");
       }
 

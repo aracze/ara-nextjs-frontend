@@ -1,5 +1,6 @@
 export interface SearchItem {
   slug: string;
+  fullSlug: string;
   title: string;
   text?: string;
   documentId?: string;
@@ -15,14 +16,10 @@ export interface ServiceData {
 }
 
 export interface PageData {
-  attributes?: {
-    title?: string;
-    text?: string;
-    slug?: string;
-  };
   title?: string;
   text?: string;
   slug?: string;
+  fullSlug?: string;
   services?: ServiceData[];
   [key: string]: unknown;
 }

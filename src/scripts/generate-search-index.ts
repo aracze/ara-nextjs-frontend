@@ -56,11 +56,10 @@ export async function generateSearchIndex() {
     respData.forEach((page: PageData) => {
       // Add the page itself to the index
       indexData.push({
-        title: removeMd(
-          ((page.attributes?.title || page.title) as string) || "",
-        ),
-        text: removeMd(((page.attributes?.text || page.text) as string) || ""),
-        slug: ((page.attributes?.slug || page.slug) as string) || "",
+        title: removeMd((page.title as string) || ""),
+        text: removeMd((page.text as string) || ""),
+        slug: (page.slug as string) || "",
+        fullSlug: (page.fullSlug as string) || "",
         type: "Pages",
       });
 
