@@ -81,6 +81,10 @@ const fetchRootPagesCache = cache(
       }
 
       const data = await res.json();
+      if (data.errors?.length > 0) {
+        throw new Error(data.errors[0].message);
+      }
+
       await setCache("root_pages", JSON.stringify(data));
       return data;
     },
@@ -95,6 +99,11 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
+
+      const pageJson = await getCache("page_" + fullSlug);
+      if (pageJson) {
+        return JSON.parse(pageJson);
+      }
 
       const response = await fetch(getStrapiURL() + "/graphql", {
         method: "POST",
@@ -156,6 +165,8 @@ const fetchPageByFullSlugCache = cache((fullSlug: string) =>
       if (result.errors?.length > 0) {
         throw new Error(result.errors[0].message);
       }
+
+      await setCache("page_" + fullSlug, JSON.stringify(result));
 
       return result;
     },
