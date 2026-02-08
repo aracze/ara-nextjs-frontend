@@ -5,10 +5,10 @@ import rehypeRaw from "rehype-raw";
 
 export const MainContent = ({
   text,
-  children = [],
+  pageChildren = [],
 }: {
   text: string;
-  children: PageChild[];
+  pageChildren: PageChild[];
 }) => {
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-18 py-12 md:py-20 flex flex-col md:flex-row gap-16 lg:gap-24">
@@ -53,11 +53,11 @@ export const MainContent = ({
         </div>
 
         {/* Sub-pages list */}
-        {children.length > 0 && (
+        {pageChildren.length > 0 && (
           <div className="bg-gray-50 rounded-2xl p-8">
             <h3 className="text-gray-900 font-bold mb-6 text-xl">Podstránky</h3>
             <ul className="space-y-4">
-              {children.map((child: PageChild) => (
+              {pageChildren.map((child: PageChild) => (
                 <li key={child.documentId}>
                   <Link
                     href={`/${child.fullSlug}`}

@@ -42,7 +42,7 @@ export default async function PageRoute({ params }: Props) {
   // 1. Try fetching as a Page
   const { data: pageData } = await fetchPageByFullSlug(fullSlug);
   if (pageData?.pages.length > 0) {
-    return <Page pages={pageData?.pages} />;
+    return <Page page={pageData?.pages[0]} />;
   }
 
   // 2. If not a page, try fetching as an Article under a parent

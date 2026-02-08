@@ -5,21 +5,13 @@ import { PageChild } from "@/types/strapi";
 import { getStrapiURL } from "@/lib/utils";
 
 interface PlacesToVisitProps {
-  children: PageChild[];
+  pageChildren: PageChild[];
 }
 
-export const PlacesToVisit: React.FC<PlacesToVisitProps> = ({ children }) => {
-  // Filter children that have the category "Místo k navštívení" or internal Strapi enum values
-  console.log(
-    "PlacesToVisit raw children data:",
-    JSON.stringify(
-      children.map((c) => ({ title: c.title, category: c.category })),
-      null,
-      2,
-    ),
-  );
-
-  const places = children.filter((child) => {
+export const PlacesToVisit: React.FC<PlacesToVisitProps> = ({
+  pageChildren,
+}) => {
+  const places = pageChildren.filter((child) => {
     const cat = child.category?.trim();
     return cat === "Misto_k_navstiveni";
   });

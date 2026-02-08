@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { ResultList } from "./resultlist/resultlist";
@@ -8,17 +8,12 @@ import { SearchGraphic } from "./search-graphic";
 export function HeaderSearch() {
   const { query, setQuery, results, clearSearch } = useSearch();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     clearSearch();
     setIsExpanded(false);
-  };
+  }, [clearSearch]);
 
   // Focus management
   useEffect(() => {
@@ -50,9 +45,7 @@ export function HeaderSearch() {
     return () => {
       document.removeEventListener("keyup", handleEscapeKeyup);
     };
-  }, []);
-
-  if (!mounted) return null;
+  }, [handleClear]);
 
   return (
     <div className="flex items-center">

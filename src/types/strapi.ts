@@ -59,7 +59,7 @@ export interface Page {
   documentId: string;
   title: string;
   fullSlug: string;
-  category?: string;
+  category: PageCategory;
   text: string;
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
@@ -98,7 +98,7 @@ interface PageEntry {
   fullSlug: string;
   includeInChildUrlPaths: null;
   parent: PageParent;
-  children: any[]; // Array of page-like objects (incomplete structure)
+  children: unknown[]; // Array of page-like objects (incomplete structure)
   featuredImage: null;
 }
 
@@ -114,4 +114,21 @@ interface PageParent {
   publishedAt: string;
   fullSlug: string;
   includeInChildUrlPaths: boolean | null;
+}
+
+export enum PageCategory {
+  Misto_k_navstiveni = "Misto_k_navstiveni",
+  Turisticky_cil = "Turistický cíl",
+  Mista = "Místa",
+  Prakticke_informace = "Praktické informace",
+  Vstupni_podminky = "Vstupní podmínky",
+  Cesta = "Cesta",
+  Pocasi = "Počasí",
+  Doprava = "Doprava",
+  Mena_a_ceny = "Měna a ceny",
+  Zdravi_a_bezpeci = "Zdraví a bezpečí",
+  Jazyk_a_kultura = "Jazyk a kultura",
+  Jidlo_a_pit = "Jídlo a pití",
+  Ubytovani = "Ubytování",
+  Clanky = "Články",
 }

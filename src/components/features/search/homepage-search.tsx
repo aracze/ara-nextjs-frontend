@@ -76,7 +76,7 @@ export function HomepageSearch() {
             />
             {results.length === 0 && query.length > 0 && (
               <div className="p-4 text-center text-gray-400 text-sm">
-                Žádné výsledky pro "{query}"
+                Žádné výsledky pro &quot;{query}&quot;
               </div>
             )}
           </div>

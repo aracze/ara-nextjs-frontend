@@ -4,9 +4,11 @@ import { PageChild } from "@/types/strapi";
 export const Subnavigation = ({
   title,
   pageChildren,
+  currentPageDocumentId,
 }: {
   title: string;
   pageChildren: PageChild[];
+  currentPageDocumentId: string;
 }) => {
   return (
     <div className="bg-white py-4 md:py-6 border-b border-gray-100 relative z-30 overflow-x-auto whitespace-nowrap">
@@ -17,7 +19,7 @@ export const Subnavigation = ({
             <Link
               key={pageChild.documentId}
               href={`/${pageChild.fullSlug}`}
-              className="hover:text-[#215491] transition-colors tracking-wide text-gray-900 font-heading"
+              className={`hover:text-[#215491] transition-colors tracking-wide font-heading ${pageChild.documentId === currentPageDocumentId ? "text-[#ff0000]" : "text-gray-900"}`}
             >
               {pageChild.title}
             </Link>

@@ -1,4 +1,5 @@
 import { createClient } from "redis";
+import type { SetOptions } from "redis";
 
 const client = createClient({
   url: process.env.REDIS_URL || undefined,
@@ -33,7 +34,11 @@ export async function getCache(key: string): Promise<string | null> {
   }
 }
 
-export async function setCache(key: string, value: string, options?: any) {
+export async function setCache(
+  key: string,
+  value: string,
+  options?: SetOptions,
+) {
   const connected = await ensureConnected();
   if (!connected) return;
 
