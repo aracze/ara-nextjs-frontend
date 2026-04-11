@@ -56,8 +56,6 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
 };
 
 function getHeroImage(page: PayloadPage, rootPage: PayloadPage) {
-  console.log('page', page);
-  console.log('rootPage', rootPage);
   let pageForHeroImage = page;
   if (!rootPageCategories.includes(page.category)) {
     pageForHeroImage = rootPage;

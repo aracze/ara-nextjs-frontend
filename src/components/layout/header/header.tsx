@@ -17,7 +17,7 @@ export function Header({
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   // Najdeme aktuálně aktivní stránku pro mega menu
-  const activePage = pages?.find((p) => p.id === activeDropdown);
+  const activePage = pages?.find((p) => String(p.id) === activeDropdown);
 
   return (
     <header
@@ -69,7 +69,9 @@ export function Header({
                 <div
                   key={page.id}
                   className="h-[65px] flex items-center"
-                  onMouseEnter={() => hasChildren && setActiveDropdown(String(page.id))}
+                  onMouseEnter={() =>
+                    hasChildren && setActiveDropdown(String(page.id))
+                  }
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   <Link
