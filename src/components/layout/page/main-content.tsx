@@ -1,4 +1,4 @@
-import { PageChild } from "@/types/strapi";
+import { PageChild } from "@/types/payload";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -58,9 +58,9 @@ export const MainContent = ({
             <h3 className="text-gray-900 font-bold mb-6 text-xl">Podstránky</h3>
             <ul className="space-y-4">
               {pageChildren.map((child: PageChild) => (
-                <li key={child.documentId}>
+                <li key={child.id}>
                   <Link
-                    href={`/${child.fullSlug}`}
+                    href={child.fullSlug}
                     className="flex items-center group"
                   >
                     <span className="w-2 h-2 rounded-full bg-[#215491]/30 mr-3 group-hover:bg-[#215491] transition-colors" />

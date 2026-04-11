@@ -37,12 +37,15 @@ export interface GlobalHeader {
 }
 
 export interface PageChild {
+  id: string | number;
   title: string;
   fullSlug: string;
   documentId: string;
   category?: string;
   featuredImage?: SharedImageComponent | null;
-  children?: PageChild[];
+  children?: {
+    docs: PageChild[];
+  };
 }
 
 export interface Article {
@@ -56,14 +59,16 @@ export interface Article {
 }
 
 export interface Page {
-  documentId: string;
+  id: string | number;
   title: string;
   fullSlug: string;
   category: PageCategory;
   text: string;
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
-  children: PageChild[];
+  children: {
+    docs: PageChild[];
+  };
   articles: Article[];
 }
 
@@ -117,18 +122,18 @@ interface PageParent {
 }
 
 export enum PageCategory {
-  Misto_k_navstiveni = "Misto_k_navstiveni",
-  Turisticky_cil = "Turistický cíl",
-  Mista = "Místa",
-  Prakticke_informace = "Praktické informace",
-  Vstupni_podminky = "Vstupní podmínky",
-  Cesta = "Cesta",
-  Pocasi = "Počasí",
-  Doprava = "Doprava",
-  Mena_a_ceny = "Měna a ceny",
-  Zdravi_a_bezpeci = "Zdraví a bezpečí",
-  Jazyk_a_kultura = "Jazyk a kultura",
-  Jidlo_a_pit = "Jídlo a pití",
-  Ubytovani = "Ubytování",
-  Clanky = "Články",
+  Misto_k_navstiveni = 'Místo k navštívení',
+  Turisticky_cil = 'Turistický cíl',
+  Mista = 'Místa',
+  Prakticke_informace = 'Praktické informace',
+  Vstupni_podminky = 'Vstupní podmínky',
+  Cesta = 'Cesta',
+  Pocasi = 'Počasí',
+  Doprava = 'Doprava',
+  Mena_a_ceny = 'Měna a ceny',
+  Zdravi_a_bezpeci = 'Zdraví a bezpečí',
+  Jazyk_a_kultura = 'Jazyk a kultura',
+  Jidlo_a_pit = 'Jídlo a pití',
+  Ubytovani = 'Ubytování',
+  Clanky = 'Články',
 }

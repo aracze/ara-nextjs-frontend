@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageChild } from "@/types/strapi";
+import { PageChild } from "@/types/payload";
 
 export const Subnavigation = ({
   title,
@@ -17,9 +17,9 @@ export const Subnavigation = ({
           <span className="text-[#215491] tracking-wide">{title}</span>
           {pageChildren?.slice(0, 8).map((pageChild) => (
             <Link
-              key={pageChild.documentId}
-              href={`/${pageChild.fullSlug}`}
-              className={`hover:text-[#215491] transition-colors tracking-wide font-heading ${pageChild.documentId === currentPageDocumentId ? "text-[#ff0000]" : "text-gray-900"}`}
+              key={pageChild.id}
+              href={pageChild.fullSlug}
+              className={`hover:text-[#215491] transition-colors tracking-wide font-heading ${String(pageChild.id) === currentPageDocumentId ? "text-[#ff0000]" : "text-gray-900"}`}
             >
               {pageChild.title}
             </Link>

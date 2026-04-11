@@ -1,8 +1,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
-import { Article as ArticleType } from "@/types/strapi";
-import { getStrapiURL } from "@/lib/utils";
+import { Article as ArticleType } from "@/types/payload";
+import { getPayloadURL } from "@/lib/utils";
 import Link from "next/link";
 import { ChevronLeft, Calendar, Tag } from "lucide-react";
 import { StaticHeroOverlay } from "@/components/features/static-hero-overlay";
@@ -16,7 +16,7 @@ interface ArticleProps {
 export const Article: React.FC<ArticleProps> = ({ article }) => {
   const imageUrl = article.featuredImage?.image?.url
     ? article.featuredImage.image.url.startsWith("/")
-      ? `${getStrapiURL()}${article.featuredImage.image.url}`
+      ? `${getPayloadURL()}${article.featuredImage.image.url}`
       : article.featuredImage.image.url
     : null;
 
