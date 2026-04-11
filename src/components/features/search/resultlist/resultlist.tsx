@@ -20,7 +20,7 @@ export function ResultList({
           // Simple attempt to highlight query in title if we want, but keeping it simple for now
           return (
             <Link
-              href={`/${result.item.fullSlug}`}
+              href={result.item.fullSlug}
               key={result.item.documentId || `result-${index}`}
               onClick={() => handleLinkClicked()}
               className="group flex items-center py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"

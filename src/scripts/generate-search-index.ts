@@ -7,7 +7,7 @@ import type { PageData } from "@/types/search";
 import type { ServiceData } from "@/types/search";
 import type { ShowcaseData } from "@/types/search";
 
-const strapiUrl = process.env.STRAPI_BASE_API_URL || "http://localhost:1337";
+const cmsUrl = process.env.PAYLOAD_BASE_API_URL || "http://localhost:3000";
 
 /*
  * Fetches data from Strapi, formats it using Fuse.js,
@@ -17,13 +17,14 @@ const strapiUrl = process.env.STRAPI_BASE_API_URL || "http://localhost:1337";
 export async function generateSearchIndex() {
   const query = qs.stringify(
     {
-      populate: "*",
+      depth: 2,
+      limit: 200,
     },
     {
       encodeValuesOnly: true,
     },
   );
-  const resp = await fetch(`${strapiUrl}/api/pages?${query}`, {
+  const resp = await fetch(`${cmsUrl}/api/pages?${query}`, {
     method: "GET",
     cache: "no-store",
   });
@@ -35,7 +36,7 @@ export async function generateSearchIndex() {
       const errResp: unknown = JSON.parse(err);
       console.log(errResp);
     } catch (err) {
-      console.log(`There was a problem fetching data from Strapi: ${err}`);
+      console.log(`There was a problem fetching data from CMS: ${err}`);
     }
   } else {
     const indexData: Record<string, unknown>[] = [];
@@ -44,12 +45,10 @@ export async function generateSearchIndex() {
     const body: any = await resp.json();
 
     if (body?.error) {
-      console.log(
-        `There was a problem fetching data from Strapi: ${body.error}`,
-      );
+      console.log(`There was a problem fetching data from CMS: ${body.error}`);
       return;
     } else {
-      respData = (body?.data || body) as PageData[];
+      respData = (body?.docs || body?.data || body) as PageData[];
     }
 
     // The search index data is created here

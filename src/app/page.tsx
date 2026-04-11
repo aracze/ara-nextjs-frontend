@@ -1,4 +1,4 @@
-import { fetchRootPages } from "@/lib/strapi";
+import { fetchRootPages } from "@/lib/payload";
 import { Homepage } from "@/components/layout/homepage/homepage";
 
 export default async function Home() {

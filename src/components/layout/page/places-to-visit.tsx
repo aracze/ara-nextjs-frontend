@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { PageChild } from "@/types/strapi";
-import { getStrapiURL } from "@/lib/utils";
+import { PageCategory, PageChild } from "@/types/payload";
+import { getPayloadURL } from "@/lib/utils";
 
 interface PlacesToVisitProps {
   pageChildren: PageChild[];
@@ -13,7 +13,7 @@ export const PlacesToVisit: React.FC<PlacesToVisitProps> = ({
 }) => {
   const places = pageChildren.filter((child) => {
     const cat = child.category?.trim();
-    return cat === "Misto_k_navstiveni";
+    return cat === PageCategory.Misto_k_navstiveni;
   });
 
   if (places.length === 0) return null;
@@ -35,14 +35,14 @@ export const PlacesToVisit: React.FC<PlacesToVisitProps> = ({
           {places.map((place) => {
             const imageUrl = place.featuredImage?.image?.url
               ? place.featuredImage.image.url.startsWith("/")
-                ? `${getStrapiURL()}${place.featuredImage.image.url}`
+                ? `${getPayloadURL()}${place.featuredImage.image.url}`
                 : place.featuredImage.image.url
               : null;
 
             return (
               <Link
-                key={place.documentId}
-                href={`/${place.fullSlug}`}
+                key={place.id}
+                href={place.fullSlug}
                 className="group relative flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 h-[380px]"
               >
                 <div className="relative h-full w-full overflow-hidden">

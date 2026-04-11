@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { delCache } from "@/lib/redis";
-import { StrapiEvent } from "@/types/strapi";
+import { StrapiEvent } from "@/types/payload";
 
 export async function POST(request: NextRequest) {
   const body: StrapiEvent = (await request.json()) as StrapiEvent;

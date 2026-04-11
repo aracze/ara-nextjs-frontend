@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Article } from "@/types/strapi";
-import { getStrapiURL } from "@/lib/utils";
+import { Article } from "@/types/payload";
+import { getPayloadURL } from "@/lib/utils";
 
 interface ArticlesProps {
   articles: Article[];
@@ -36,7 +36,7 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
           {articles.map((article) => {
             const imageUrl = article.featuredImage?.image?.url
               ? article.featuredImage.image.url.startsWith("/")
-                ? `${getStrapiURL()}${article.featuredImage.image.url}`
+                ? `${getPayloadURL()}${article.featuredImage.image.url}`
                 : article.featuredImage.image.url
               : null;
 

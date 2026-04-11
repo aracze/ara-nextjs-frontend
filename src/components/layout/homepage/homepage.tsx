@@ -1,5 +1,5 @@
 import { StaticHeroWave } from "@/components/features/static-hero-wave";
-import { Homepage as HomepageType } from "@/types/strapi";
+import { Homepage as HomepageType } from "@/types/payload";
 import { StaticHeroOverlay } from "@/components/features/static-hero-overlay";
 import { StaticHeroTitle } from "./static-hero-title";
 import { StaticHeroImage } from "@/components/features/static-hero-image";

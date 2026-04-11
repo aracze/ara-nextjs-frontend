@@ -11,7 +11,7 @@ import "./globals.css";
 import { isProduction } from "@/lib/utils";
 import { Header } from "@/components/layout/header/header";
 import { WebVitals } from "@/components/features/web-vitals";
-import { fetchRootPages } from "@/lib/strapi";
+import { fetchRootPages } from "@/lib/payload";
 
 // 1. NASTAVENÍ PÍSEM (Google Fonts)
 const openSans = Open_Sans({
@@ -53,7 +53,7 @@ export default async function RootLayout({
         {/* HLAVNÍ KONTEJNER: flex rozložení pro menu a obsah */}
         <div className="flex flex-col min-h-screen">
           {data.pages?.length > 0 && (
-            <Header pages={data.pages} header={data.global?.header} />
+            <Header pages={data.pages} headerLogo={data.global?.header?.logo} />
           )}
           <div className="grow w-full">{children}</div>
         </div>

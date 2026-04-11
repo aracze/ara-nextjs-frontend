@@ -1,6 +1,6 @@
 import { Page } from "@/components/layout/page/page";
 import { Article } from "@/components/layout/article/article";
-import { fetchPageByFullSlug, fetchArticleBySlug } from "@/lib/strapi";
+import { fetchPageByFullSlug, fetchArticleBySlug } from "@/lib/payload";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
