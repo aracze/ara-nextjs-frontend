@@ -5,10 +5,8 @@ import {
   GlobalHeader,
   Homepage,
 } from '@/types/payload';
-import { getPayloadURL } from './utils';
+import { getPayloadURL, isProduction } from './utils';
 import { cache } from 'react';
-import { unstable_cache } from 'next/cache';
-import { getCache, setCache } from './redis';
 
 const DEFAULT_LIMIT = '200';
 
@@ -18,7 +16,15 @@ type PayloadDocsResponse<T> = {
 };
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+  const res = await fetch(url, {
+    ...init,
+    next: {
+      revalidate: isProduction() ? 10 : 0,
+      ...init?.next,
+      ...(isProduction() ? {} : { revalidate: 0 }),
+    },
+    cache: isProduction() ? init?.cache : 'no-store',
+  });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`Request failed: ${res.status} ${res.statusText} ${body}`);
@@ -43,6 +49,7 @@ async function fetchAllPagesPayload(): Promise<Page[]> {
       depth: '2',
       limit: DEFAULT_LIMIT,
     }),
+    { next: { tags: ['pages'] } },
   );
   return response.docs || [];
 }
@@ -56,6 +63,7 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
         depth: '2',
         limit: DEFAULT_LIMIT,
       }),
+      { next: { tags: ['root_pages'] } },
     );
     pages = response.docs || [];
   } catch {
@@ -65,9 +73,11 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
   const [header, homepage] = await Promise.all([
     fetchJSON<Record<string, unknown> | null>(
       buildPayloadUrl('/api/globals/header'),
+      { next: { tags: ['root_pages'] } },
     ).catch(() => null),
     fetchJSON<Record<string, unknown> | null>(
       buildPayloadUrl('/api/globals/homepage'),
+      { next: { tags: ['root_pages'] } },
     ).catch(() => null),
   ]);
 
@@ -95,6 +105,7 @@ async function fetchPageByFullSlugPayload(
       depth: '2',
       limit: '1',
     }),
+    { next: { tags: ['page_' + fullSlug] } },
   );
   const match = response.docs?.[0];
 
@@ -115,65 +126,15 @@ async function fetchArticleBySlugPayload(
     },
   };
 }
-
-const fetchRootPagesCache = cache(
-  unstable_cache(
-    async (): Promise<PagesResponse> => {
-      const pageJson = await getCache('root_pages');
-      if (pageJson) {
-        return JSON.parse(pageJson);
-      }
-      const data = await fetchRootPagesPayload();
-      await setCache('root_pages', JSON.stringify(data));
-      return data;
-    },
-    ['root_pages'],
-    { revalidate: 10, tags: ['root_pages'] },
-  ),
-);
-
 const ensureCorrectFullSlug = (fullSlug: string) => {
   return fullSlug.startsWith('/') ? fullSlug : `/${fullSlug}`;
 };
 
-const fetchPageByFullSlugCache = cache((fullSlug: string) => {
-  const correctFullSlug = ensureCorrectFullSlug(fullSlug);
-  return unstable_cache(
-    async (): Promise<{ data: { pages: Page[] } }> => {
-      const pageJson = await getCache('page_' + correctFullSlug);
-      if (pageJson) {
-        return JSON.parse(pageJson);
-      }
+export const fetchArticleBySlug = cache(fetchArticleBySlugPayload);
 
-      const result = await fetchPageByFullSlugPayload(correctFullSlug);
-
-      await setCache('page_' + correctFullSlug, JSON.stringify(result));
-
-      return result;
-    },
-    ['page_' + correctFullSlug],
-    { revalidate: 10, tags: ['page_' + correctFullSlug] },
-  );
+export const fetchPageByFullSlug = cache(async (slug: string) => {
+  const correctFullSlug = ensureCorrectFullSlug(slug);
+  return fetchPageByFullSlugPayload(correctFullSlug);
 });
 
-const fetchArticleBySlugCache = cache((slug: string, parentSlug?: string) =>
-  unstable_cache(
-    async (): Promise<{
-      data: {
-        articles: Article[];
-      };
-    }> => {
-      return fetchArticleBySlugPayload(slug, parentSlug);
-    },
-    ['article_' + slug + '_' + (parentSlug || 'any')],
-    { revalidate: 10, tags: ['article_' + slug] },
-  ),
-);
-
-export const fetchArticleBySlug = (slug: string, parentSlug?: string) =>
-  fetchArticleBySlugCache(slug, parentSlug)();
-
-export const fetchPageByFullSlug = (slug: string) =>
-  fetchPageByFullSlugCache(slug)();
-
-export const fetchRootPages = () => fetchRootPagesCache();
+export const fetchRootPages = cache(fetchRootPagesPayload);
