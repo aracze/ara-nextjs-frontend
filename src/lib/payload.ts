@@ -89,7 +89,6 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
 async function fetchPageByFullSlugPayload(
   fullSlug: string,
 ): Promise<{ data: { pages: Page[] } }> {
-  console.log('fullSlugxxxx', fullSlug);
   const response = await fetchJSON<PayloadDocsResponse<Page>>(
     buildPayloadUrl('/api/pages', {
       'where[fullSlug][equals]': fullSlug,
@@ -122,13 +121,9 @@ const fetchRootPagesCache = cache(
     async (): Promise<PagesResponse> => {
       const pageJson = await getCache('root_pages');
       if (pageJson) {
-        console.log('Cache hit for root_pages');
         return JSON.parse(pageJson);
       }
-
       const data = await fetchRootPagesPayload();
-
-      console.log('dataxxx', data);
       await setCache('root_pages', JSON.stringify(data));
       return data;
     },
