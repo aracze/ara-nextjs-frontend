@@ -26,7 +26,7 @@ export interface ImageLink {
   id: number;
   svgCode: string | null;
   image: SharedImageComponent | null;
-  Link: NavLink | null;
+  link: NavLink | null;
 }
 
 export interface GlobalHeader {

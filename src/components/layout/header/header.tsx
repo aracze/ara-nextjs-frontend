@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Page, ImageLink } from '@/types/payload';
-import Search from '@/components/features/search/search';
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Page, ImageLink } from "@/types/payload";
+import Search from "@/components/features/search/search";
 
 export function Header({
   pages,
@@ -22,12 +22,12 @@ export function Header({
   return (
     <header
       className={`absolute top-0 left-0 w-full z-[200] transition-colors duration-300 ${
-        activeDropdown ? 'bg-[#215491]' : 'bg-transparent'
+        activeDropdown ? "bg-[#215491]" : "bg-transparent"
       } group/header`}
     >
       <div
         className={`absolute inset-0 h-[65px] bg-gradient-to-b from-black/50 to-transparent z-[-1] transition-opacity duration-300 ${
-          activeDropdown ? 'opacity-0' : 'opacity-100'
+          activeDropdown ? "opacity-0" : "opacity-100"
         }`}
       />
 
@@ -50,9 +50,9 @@ export function Header({
                     src={new URL(
                       logo.image.url,
                       process.env.NEXT_PUBLIC_PAYLOAD_BASE_URL ||
-                        'http://localhost:3000',
+                        "http://localhost:3000",
                     ).toString()}
-                    alt={logo.image.alternativeText || 'Logo'}
+                    alt={logo.image.alternativeText || "Logo"}
                     width={132}
                     height={26}
                     className="h-[26px] w-auto object-contain"
@@ -63,14 +63,15 @@ export function Header({
           )}
 
           <div className="hidden md:flex items-center gap-2 h-full text-white/90 font-semibold">
-            {pages?.map((page) => {
+            {pages?.map((page, index) => {
               const hasChildren = page.children?.docs?.length > 0;
+              const pageId = page.id || `temp-id-${index}`;
               return (
                 <div
-                  key={page.id}
+                  key={pageId}
                   className="h-[65px] flex items-center"
                   onMouseEnter={() =>
-                    hasChildren && setActiveDropdown(String(page.id))
+                    hasChildren && setActiveDropdown(String(pageId))
                   }
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
@@ -107,9 +108,9 @@ export function Header({
           <div className="bg-white py-2">
             <div className="max-w-7xl mx-auto px-4 md:px-12 py-10">
               <div className="grid grid-cols-5 gap-y-4 gap-x-12">
-                {activePage.children.docs.map((child) => (
+                {activePage.children.docs.map((child, index) => (
                   <Link
-                    key={child.id}
+                    key={child.id || `child-${index}`}
                     href={child.fullSlug}
                     className="text-[15px] text-gray-800 py-1 transition-all inline-block w-full [text-shadow:1px_2px_3px_rgb(255,255,255)] hover:text-white hover:bg-[#3C6EAA] hover:px-4 hover:-mx-4 hover:rounded-sm hover:no-underline hover:shadow-none hover:[text-shadow:none]"
                   >
