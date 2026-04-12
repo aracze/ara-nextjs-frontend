@@ -2,6 +2,7 @@ import { PageChild } from "@/types/payload";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
 
 export const MainContent = ({
   text,
@@ -15,7 +16,7 @@ export const MainContent = ({
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
-          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{text}</ReactMarkdown>
+          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>{text}</ReactMarkdown>
         </div>
       </div>
 

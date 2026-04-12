@@ -1,6 +1,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
 import { Article as ArticleType } from "@/types/payload";
 import { getPayloadURL } from "@/lib/utils";
 import Link from "next/link";
@@ -73,7 +74,7 @@ export const Article: React.FC<ArticleProps> = ({ article }) => {
       {/* Article Content */}
       <main className="max-w-4xl mx-auto px-4 py-16 md:py-24">
         <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
-          <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
             {article.text}
           </ReactMarkdown>
         </div>
