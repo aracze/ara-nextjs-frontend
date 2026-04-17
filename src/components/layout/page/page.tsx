@@ -35,12 +35,13 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
         {/* Sub-navigation bar style */}
         <Subnavigation
           title={safeRootPage.title}
+          rootFullSlug={safeRootPage.fullSlug}
           pageChildren={rootChildren}
-          currentPageDocumentId={String(page.id)}
+          currentPageFullSlug={page.fullSlug}
         />
 
         {/* 2. CONTENT AREA */}
-        <MainContent text={page.text} pageChildren={pageChildren} />
+        <MainContent text={page.text} pageChildren={pageChildren} pageCategory={page.category} timezone={page.detail?.timezone} />
 
         {/* 3. PLACES TO VISIT SECTION */}
         {pageChildren.length > 0 && (

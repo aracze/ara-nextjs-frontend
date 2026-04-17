@@ -56,8 +56,9 @@ export const Article: React.FC<ArticleProps> = async ({
       {rootPage && (
         <Subnavigation
           title={rootPage.title}
+          rootFullSlug={rootPage.fullSlug}
           pageChildren={rootPage.children?.docs ?? []}
-          currentPageDocumentId={contextPage ? String(contextPage.id) : ""}
+          currentPageFullSlug={contextPage?.fullSlug ?? ""}
         />
       )}
 

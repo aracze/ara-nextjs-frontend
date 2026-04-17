@@ -83,6 +83,10 @@ export interface Page {
     docs: PageChild[];
   };
   articles: Article[];
+  detail?: {
+    timezone?: string | null;
+    currencyCode?: string | null;
+  } | null;
 }
 
 export interface PagesResponse {
