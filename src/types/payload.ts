@@ -76,7 +76,7 @@ export interface Page {
   title: string;
   fullSlug: string;
   category: PageCategory;
-  text: string;
+  text: string | RichTextRoot;
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
   children: {

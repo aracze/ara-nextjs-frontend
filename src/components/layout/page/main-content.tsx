@@ -1,9 +1,10 @@
-import { PageCategory, PageChild } from "@/types/payload";
+import { PageCategory, PageChild, RichTextRoot } from "@/types/payload";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import { LocalTime } from "@/components/features/local-time";
+import { richTextToHtml } from "@/lib/utils";
 
 interface TocItem {
   id: string;
@@ -11,21 +12,18 @@ interface TocItem {
   level: number;
 }
 
-function extractHeadings(markdown: string): TocItem[] {
+function extractHeadings(html: string): TocItem[] {
   const headings: TocItem[] = [];
-  const lines = markdown.split("\n");
-  for (const line of lines) {
-    const match = line.match(/^(#{2,3})\s+(.+)/);
-    if (match) {
-      const level = match[1].length;
-      const text = match[2].replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/[*_`]/g, "").trim();
-      // Match github-slugger (used by rehype-slug): keeps unicode letters/diacritics
-      const id = text
-        .toLowerCase()
-        .replace(/ /g, "-")
-        .replace(/[^\p{L}\p{M}\p{N}\p{Pc}\-]/gu, "");
-      headings.push({ id, text, level });
-    }
+  const regex = /<(h[23])>(.*?)<\/\1>/gi;
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const level = parseInt(match[1][1], 10);
+    const text = match[2].replace(/<[^>]+>/g, "").trim();
+    const id = text
+      .toLowerCase()
+      .replace(/ /g, "-")
+      .replace(/[^\p{L}\p{M}\p{N}\p{Pc}\-]/gu, "");
+    headings.push({ id, text, level });
   }
   return headings;
 }
@@ -38,7 +36,7 @@ export const MainContent = ({
   currencyCode,
   exchangeRate,
 }: {
-  text: string;
+  text: string | RichTextRoot;
   pageChildren: PageChild[];
   pageCategory?: PageCategory;
   timezone?: string | null;
@@ -51,15 +49,16 @@ export const MainContent = ({
     PageCategory.Turisticky_cil,
   ];
   const showAktualniInfo = !!pageCategory && placeCategories.includes(pageCategory);
+  const textHtml = richTextToHtml(text);
   const showTableOfContents = pageCategory === PageCategory.Vstupni_podminky;
-  const headings = showTableOfContents ? extractHeadings(text) : [];
+  const headings = showTableOfContents ? extractHeadings(textHtml) : [];
 
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-18 py-12 md:py-20 flex flex-col md:flex-row gap-16 lg:gap-24">
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
-          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>{text}</ReactMarkdown>
+          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>{textHtml}</ReactMarkdown>
         </div>
       </div>
 

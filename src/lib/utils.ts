@@ -80,6 +80,36 @@ export function richTextToHtml(value: unknown): string {
       const alt = escapeHtml(String((node.value as Record<string, unknown>)?.alt ?? ''));
       return src ? `<img src="${src}" alt="${alt}" />` : '';
     }
+    case 'block': {
+      const fields = node.fields as Record<string, unknown> | undefined;
+      if (fields?.blockType === 'contentImage') {
+        const image = fields.image as Record<string, unknown> | undefined;
+        if (!image?.url) return '';
+        const url = String(image.url);
+        const alt = escapeHtml(String(image.alt ?? ''));
+        const caption = String(fields.caption ?? '');
+        const cloudinaryMatch = url.match(
+          /res\.cloudinary\.com\/([^/]+)\/image\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/,
+        );
+        let html = '';
+        if (cloudinaryMatch) {
+          const [, cloudName, publicId] = cloudinaryMatch;
+          const base = `https://res.cloudinary.com/${cloudName}/image/upload`;
+          const fullUrl = `${base}/c_fit,w_800/${publicId}`;
+          const defaultUrl = `${base}/c_fill,g_center,h_420,w_790/${publicId}`;
+          const smallUrl = `${base}/c_fit,w_420/${publicId}`;
+          html = `<figure class="image-wrapper"><a href="${fullUrl}" title="${alt}"><img alt="${alt}" src="${defaultUrl}" srcset="${smallUrl} 420w, ${defaultUrl} 747w" sizes="(min-width: 480px) calc(100vw - 60px), calc(100vw - 30px)" /></a>`;
+        } else {
+          html = `<figure class="image-wrapper"><img src="${escapeHtml(url)}" alt="${alt}" />`;
+        }
+        if (caption) {
+          html += `<figcaption>${escapeHtml(caption)}</figcaption>`;
+        }
+        html += '</figure>';
+        return html;
+      }
+      return children;
+    }
     default:
       return children;
   }
