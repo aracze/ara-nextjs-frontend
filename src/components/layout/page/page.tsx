@@ -5,6 +5,7 @@ import { Subnavigation } from './subnavigation';
 import { MainContent } from './main-content';
 import { PlacesToVisit } from './places-to-visit';
 import { fetchPageByFullSlug } from '@/lib/payload';
+import { fetchExchangeRate } from '@/lib/exchange-rate';
 import { PageCategory } from '@/types/payload';
 
 const rootPageCategories: PageCategory[] = [
@@ -20,6 +21,10 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
   const pageChildren = page.children?.docs ?? [];
 
   const imageUrl = getHeroImage(page, safeRootPage);
+
+  const exchangeData = page.detail?.currencyCode
+    ? await fetchExchangeRate(page.detail.currencyCode)
+    : null;
 
   return (
     <div className="flex flex-col bg-white overflow-x-hidden transition-all duration-500">
@@ -41,7 +46,14 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
         />
 
         {/* 2. CONTENT AREA */}
-        <MainContent text={page.text} pageChildren={pageChildren} pageCategory={page.category} timezone={page.detail?.timezone} />
+        <MainContent
+          text={page.text}
+          pageChildren={pageChildren}
+          pageCategory={page.category}
+          timezone={page.detail?.timezone}
+          currencyCode={page.detail?.currencyCode}
+          exchangeRate={exchangeData?.rate}
+        />
 
         {/* 3. PLACES TO VISIT SECTION */}
         {pageChildren.length > 0 && (

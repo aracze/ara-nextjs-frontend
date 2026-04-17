@@ -2,23 +2,42 @@
 
 import { useState, useEffect } from "react";
 
+interface TimeData {
+  day: string;
+  time: string;
+  offset: string;
+}
+
 export function LocalTime({ timezone }: { timezone?: string | null }) {
-  const [time, setTime] = useState<string | null>(null);
+  const [data, setData] = useState<TimeData | null>(null);
 
   useEffect(() => {
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      hour: "2-digit",
-      minute: "2-digit",
-      ...(timezone ? { timeZone: timezone } : {}),
-    };
-
     const update = () => {
       try {
-        setTime(new Date().toLocaleString("cs-CZ", options));
+        const now = new Date();
+        const opts: Intl.DateTimeFormatOptions = timezone ? { timeZone: timezone } : {};
+
+        const day = now.toLocaleDateString("cs-CZ", { weekday: "long", ...opts }).toUpperCase();
+        const time = now.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", ...opts });
+
+        // Calculate offset from local time
+        let offset = "";
+        if (timezone) {
+          const localMinutes = now.getHours() * 60 + now.getMinutes();
+          const remoteStr = now.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: timezone });
+          const [rh, rm] = remoteStr.split(":").map(Number);
+          const remoteMinutes = rh * 60 + rm;
+          const diffHours = Math.round((remoteMinutes - localMinutes) / 60);
+          if (diffHours !== 0) {
+            offset = `${diffHours > 0 ? "+" : ""}${diffHours}H`;
+          } else {
+            offset = "0H";
+          }
+        }
+
+        setData({ day, time, offset });
       } catch {
-        // Fallback if timezone is invalid
-        setTime(new Date().toLocaleString("cs-CZ", { weekday: "long", hour: "2-digit", minute: "2-digit" }));
+        setData(null);
       }
     };
     update();
@@ -26,11 +45,23 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
     return () => clearInterval(id);
   }, [timezone]);
 
-  if (!time) return <span className="text-3xl font-light text-gray-800 tabular-nums mt-1 uppercase font-heading">&nbsp;</span>;
+  if (!data) {
+    return <div className="h-[42px]" />;
+  }
 
   return (
-    <span className="text-3xl font-light text-gray-800 tabular-nums mt-1 uppercase font-heading">
-      {time}
-    </span>
+    <div className="flex items-baseline justify-center gap-2 py-1">
+      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#67747c]">
+        {data.day}
+      </span>
+      <span className="text-[26px] tracking-[0.01rem] text-[#333] px-2 tabular-nums">
+        {data.time}
+      </span>
+      {data.offset && (
+        <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#67747c]">
+          {data.offset}
+        </span>
+      )}
+    </div>
   );
 }

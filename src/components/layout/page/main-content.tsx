@@ -35,13 +35,22 @@ export const MainContent = ({
   pageChildren = [],
   pageCategory,
   timezone,
+  currencyCode,
+  exchangeRate,
 }: {
   text: string;
   pageChildren: PageChild[];
   pageCategory?: PageCategory;
   timezone?: string | null;
+  currencyCode?: string | null;
+  exchangeRate?: number | null;
 }) => {
-  const showAktualniInfo = pageCategory === PageCategory.Misto_k_navstiveni;
+  const placeCategories: PageCategory[] = [
+    PageCategory.Misto_k_navstiveni,
+    PageCategory.Mista,
+    PageCategory.Turisticky_cil,
+  ];
+  const showAktualniInfo = !!pageCategory && placeCategories.includes(pageCategory);
   const showTableOfContents = pageCategory === PageCategory.Vstupni_podminky;
   const headings = showTableOfContents ? extractHeadings(text) : [];
 
@@ -55,29 +64,33 @@ export const MainContent = ({
       </div>
 
       {/* Sidebar / Info Column */}
-      <aside className="w-full md:w-80 flex flex-col gap-12">
-        {/* Time & Exchange Info — only for "Místo k navštívení" */}
-        {showAktualniInfo && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm hover:shadow-sm transition-shadow">
-            <h3 className="text-gray-900 font-bold mb-6 text-xl border-l-4 border-[#215491] pl-4">
-              Aktuální info
-            </h3>
-            <div className="space-y-8">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-[#215491] font-bold font-heading">
-                  Lokální čas
-                </span>
-                <LocalTime timezone={timezone} />
-              </div>
-              <div className="h-[1px] bg-gray-100" />
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-[#215491] font-bold font-heading">
-                  Měnový kurz
-                </span>
-                <div className="mt-2 text-2xl font-light text-gray-800 font-heading">
-                  1 HRK = 3,27 CZK
+      <aside className="w-full md:w-80 flex flex-col gap-12 relative">
+        {/* Time & Exchange Info — for place-type pages */}
+        {showAktualniInfo && (timezone || exchangeRate) && (
+          <div className="pl-5 border-l border-[#e4e4e4]">
+            <div className="text-center bg-white py-7 px-0">
+              <h2 className="text-base font-bold text-[#1a3f6c] mb-4">
+                {timezone && exchangeRate
+                  ? "Aktuální čas a kurz měny"
+                  : exchangeRate
+                    ? "Aktuální měnový kurz"
+                    : "Aktuální čas"}
+              </h2>
+
+              {timezone && (
+                <>
+                  <LocalTime timezone={timezone} />
+                  {exchangeRate && (
+                    <div className="w-[250px] mx-auto border-b border-[#e4e4e4] mt-3 mb-3" />
+                  )}
+                </>
+              )}
+
+              {exchangeRate && currencyCode && (
+                <div className="text-[26px] tracking-[0.01rem] text-[#333] mt-3">
+                  1 {currencyCode} = {exchangeRate.toLocaleString("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CZK
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}

@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { PageChild } from "@/types/payload";
+import { PageChild, PageCategory } from "@/types/payload";
+
+const hiddenCategories: string[] = [PageCategory.Misto_k_navstiveni];
 
 export const Subnavigation = ({
   title,
@@ -13,6 +15,9 @@ export const Subnavigation = ({
   currentPageFullSlug: string;
 }) => {
   const isRootActive = currentPageFullSlug === rootFullSlug;
+  const visibleChildren = pageChildren?.filter(
+    (child) => !child.category || !hiddenCategories.includes(child.category),
+  );
 
   return (
     <div className="bg-white border-b border-gray-100 relative z-30 overflow-x-auto whitespace-nowrap">
@@ -28,7 +33,7 @@ export const Subnavigation = ({
           >
             {title}
           </Link>
-          {pageChildren?.map((pageChild) => {
+          {visibleChildren?.map((pageChild) => {
             const isActive =
               !isRootActive &&
               (currentPageFullSlug === pageChild.fullSlug ||
