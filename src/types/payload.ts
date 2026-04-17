@@ -48,14 +48,27 @@ export interface PageChild {
   };
 }
 
+export interface RichTextRoot {
+  root?: {
+    children?: unknown[];
+  };
+}
+
+export interface ArticleMainPage {
+  id: string | number;
+  title: string;
+  fullSlug: string;
+}
+
 export interface Article {
   documentId: string;
   title: string;
   slug: string;
-  text: string;
+  text: string | RichTextRoot;
   category: string;
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
+  mainPage?: ArticleMainPage | null;
 }
 
 export interface Page {

@@ -15,8 +15,11 @@ const rootPageCategories: PageCategory[] = [
 
 export const Page = async ({ page }: { page: PayloadPage }) => {
   const rootPage = await fetchRootPage(page);
+  const safeRootPage = rootPage ?? page;
+  const rootChildren = safeRootPage.children?.docs ?? [];
+  const pageChildren = page.children?.docs ?? [];
 
-  const imageUrl = getHeroImage(page, rootPage);
+  const imageUrl = getHeroImage(page, safeRootPage);
 
   return (
     <div className="flex flex-col bg-white overflow-x-hidden transition-all duration-500">
@@ -31,17 +34,17 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
 
         {/* Sub-navigation bar style */}
         <Subnavigation
-          title={rootPage.title}
-          pageChildren={rootPage.children.docs}
+          title={safeRootPage.title}
+          pageChildren={rootChildren}
           currentPageDocumentId={String(page.id)}
         />
 
         {/* 2. CONTENT AREA */}
-        <MainContent text={page.text} pageChildren={page.children.docs} />
+        <MainContent text={page.text} pageChildren={pageChildren} />
 
         {/* 3. PLACES TO VISIT SECTION */}
-        {page.children.docs?.length > 0 && (
-          <PlacesToVisit pageChildren={page.children.docs} />
+        {pageChildren.length > 0 && (
+          <PlacesToVisit pageChildren={pageChildren} />
         )}
 
         {page.articles?.length > 0 && (

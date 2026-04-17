@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: pageData.pages[0]?.title };
   }
 
-  // 2. If not a page, try fetching as an Article under a parent
+  // 2. If not a page, try fetching as an Article (last segment = article slug)
   if (slug.length > 1) {
     const articleSlug = slug[slug.length - 1];
     const parentSlug = slug.slice(0, -1).join("/");
@@ -27,8 +27,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       parentSlug,
     );
 
-    if (articleData?.articles.length > 0) {
-      return { title: articleData.articles[0]?.title };
+    const article = articleData?.articles[0];
+    if (article) {
+      const canonicalSlug = article.mainPage?.fullSlug
+        ? `${article.mainPage.fullSlug}/${article.slug}`
+        : null;
+
+      return {
+        title: article.title,
+        ...(canonicalSlug
+          ? {
+              alternates: {
+                canonical: canonicalSlug,
+              },
+            }
+          : {}),
+      };
     }
   }
 
@@ -45,7 +59,7 @@ export default async function PageRoute({ params }: Props) {
     return <Page page={pageData?.pages[0]} />;
   }
 
-  // 2. If not a page, try fetching as an Article under a parent
+  // 2. If not a page, try fetching as an Article (last segment = article slug)
   if (slug.length > 1) {
     const articleSlug = slug[slug.length - 1];
     const parentSlug = slug.slice(0, -1).join("/");
@@ -55,7 +69,12 @@ export default async function PageRoute({ params }: Props) {
     );
 
     if (articleData?.articles.length > 0) {
-      return <Article article={articleData.articles[0]} />;
+      return (
+        <Article
+          article={articleData.articles[0]}
+          contextSlug={parentSlug}
+        />
+      );
     }
   }
 

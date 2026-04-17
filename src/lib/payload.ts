@@ -1,5 +1,6 @@
 import {
   Page,
+  PageChild,
   PagesResponse,
   Article,
   GlobalHeader,
@@ -14,6 +15,51 @@ type PayloadDocsResponse<T> = {
   docs: T[];
   totalDocs?: number;
 };
+
+type RawPayloadPage = Omit<Page, 'children' | 'articles'> & {
+  children?: {
+    docs: PageChild[];
+  };
+  subPages?: {
+    docs: PageChild[];
+  };
+  articles?: Article[];
+  primaryArticles?: {
+    docs: Article[];
+  };
+  secondaryArticles?: {
+    docs: Article[];
+  };
+};
+
+function normalizePage(page: RawPayloadPage): Page {
+  const normalizedChildren = page.children?.docs ?? page.subPages?.docs ?? [];
+
+  const primary = page.articles ?? page.primaryArticles?.docs ?? [];
+  const secondary = page.secondaryArticles?.docs ?? [];
+  // Merge primary + secondary, deduplicate by documentId/slug
+  const seen = new Set<string>();
+  const normalizedArticles: Article[] = [];
+  for (const a of [...primary, ...secondary]) {
+    const key = a.documentId || a.slug;
+    if (!seen.has(key)) {
+      seen.add(key);
+      normalizedArticles.push(a);
+    }
+  }
+
+  return {
+    ...page,
+    children: {
+      docs: normalizedChildren,
+    },
+    articles: normalizedArticles,
+  };
+}
+
+function normalizePages(pages: RawPayloadPage[]): Page[] {
+  return pages.map(normalizePage);
+}
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -44,20 +90,20 @@ function buildPayloadUrl(path: string, params?: Record<string, string>) {
 }
 
 async function fetchAllPagesPayload(): Promise<Page[]> {
-  const response = await fetchJSON<PayloadDocsResponse<Page>>(
+  const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
     buildPayloadUrl('/api/pages', {
       depth: '2',
       limit: DEFAULT_LIMIT,
     }),
     { next: { tags: ['pages'] } },
   );
-  return response.docs || [];
+  return normalizePages(response.docs || []);
 }
 
 async function fetchRootPagesPayload(): Promise<PagesResponse> {
   let pages: Page[] = [];
   try {
-    const response = await fetchJSON<PayloadDocsResponse<Page>>(
+    const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
       buildPayloadUrl('/api/pages', {
         'where[parent][exists]': 'false',
         depth: '2',
@@ -65,7 +111,7 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
       }),
       { next: { tags: ['root_pages'] } },
     );
-    pages = response.docs || [];
+    pages = normalizePages(response.docs || []);
   } catch {
     pages = await fetchAllPagesPayload();
   }
@@ -99,7 +145,7 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
 async function fetchPageByFullSlugPayload(
   fullSlug: string,
 ): Promise<{ data: { pages: Page[] } }> {
-  const response = await fetchJSON<PayloadDocsResponse<Page>>(
+  const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
     buildPayloadUrl('/api/pages', {
       'where[fullSlug][equals]': fullSlug,
       depth: '2',
@@ -107,7 +153,7 @@ async function fetchPageByFullSlugPayload(
     }),
     { next: { tags: ['page_' + fullSlug] } },
   );
-  const match = response.docs?.[0];
+  const match = response.docs?.[0] ? normalizePage(response.docs[0]) : undefined;
 
   return {
     data: {
@@ -117,12 +163,21 @@ async function fetchPageByFullSlugPayload(
 }
 
 async function fetchArticleBySlugPayload(
-  _slug: string,
+  slug: string,
   _parentSlug?: string,
 ): Promise<{ data: { articles: Article[] } }> {
+  const response = await fetchJSON<PayloadDocsResponse<Article>>(
+    buildPayloadUrl('/api/articles', {
+      'where[slug][equals]': slug,
+      depth: '2',
+      limit: '1',
+    }),
+    { next: { tags: ['article_' + slug] } },
+  );
+
   return {
     data: {
-      articles: [],
+      articles: response.docs || [],
     },
   };
 }

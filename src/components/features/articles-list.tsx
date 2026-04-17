@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Article } from "@/types/payload";
-import { getPayloadURL } from "@/lib/utils";
+import { getPayloadURL, richTextToPlainText } from "@/lib/utils";
 
 interface ArticlesProps {
   articles: Article[];
@@ -13,7 +13,7 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
   articles: articlesProp,
   parentFullSlug,
 }) => {
-  // Ensure we have an array even if Strapi returns a single object (due to relation type)
+  // Ensure we have an array even if Payload returns a single object (due to relation type)
   const articles = Array.isArray(articlesProp)
     ? articlesProp
     : articlesProp
@@ -33,7 +33,8 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article) => {
+          {articles.map((article, index) => {
+            const articleText = richTextToPlainText(article.text);
             const imageUrl = article.featuredImage?.image?.url
               ? article.featuredImage.image.url.startsWith("/")
                 ? `${getPayloadURL()}${article.featuredImage.image.url}`
@@ -41,12 +42,15 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
               : null;
 
             const articleUrl = parentFullSlug
-              ? `/${parentFullSlug}/${article.slug}`
+              ? `${parentFullSlug.replace(/\/$/, "")}/${article.slug}`
               : `/blog/${article.slug}`;
+
+            const articleKey =
+              article.documentId || article.slug || `${article.title}-${index}`;
 
             return (
               <Link
-                key={article.documentId}
+                key={articleKey}
                 href={articleUrl}
                 className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100/50 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] transition-all duration-500 transform hover:-translate-y-2"
               >
@@ -79,7 +83,7 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
                     {article.title}
                   </h3>
                   <div className="text-gray-500 line-clamp-3 text-[15px] leading-relaxed mb-8 font-light">
-                    {article.text}
+                    {articleText}
                   </div>
                   <div className="mt-auto flex items-center text-[#215491] font-bold text-[13px] tracking-[0.1em] uppercase group/read font-heading">
                     <span>Číst více</span>
