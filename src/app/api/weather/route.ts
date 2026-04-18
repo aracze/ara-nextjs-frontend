@@ -4,9 +4,18 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   try {
     const { lat, lng } = await request.json();
 
-    if (!lat || !lng) {
+    if (
+      typeof lat !== "number" ||
+      typeof lng !== "number" ||
+      !isFinite(lat) ||
+      !isFinite(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
       return NextResponse.json(
-        { error: "Latitude and longitude are required" },
+        { error: "Valid latitude and longitude are required" },
         { status: 400 },
       );
     }
@@ -22,7 +31,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&appid=${premiumKey}&units=metric&exclude=minutely,alerts`;
+    const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&appid=${premiumKey}&units=metric&exclude=minutely,alerts`;
 
     const response = await fetch(url);
     const weatherJson = await response.json();

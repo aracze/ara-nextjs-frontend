@@ -40,6 +40,8 @@ export function Header({
                   className="h-[26px] w-auto flex items-center [&_svg]:h-[26px] [&_svg]:w-auto"
                   dangerouslySetInnerHTML={{
                     __html: logo.svgCode
+                      .replace(/<script[\s\S]*?<\/script>/gi, '')
+                      .replace(/\son\w+\s*=/gi, ' data-removed=')
                       .replace(/fill="#fff"/g, 'fill="white"')
                       .replace(/fill="#[a-f0-9]{6}"/gi, 'fill="white"'),
                   }}

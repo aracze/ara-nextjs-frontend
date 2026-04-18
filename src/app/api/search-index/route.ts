@@ -3,6 +3,11 @@ import { generateSearchIndex } from "@/scripts/generate-search-index";
 import { getFuse } from "@/lib/search";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const secret = request.headers.get("x-webhook-secret");
+  if (!process.env.WEBHOOK_SECRET || secret !== process.env.WEBHOOK_SECRET) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const params = Object.fromEntries(searchParams.entries());
 
