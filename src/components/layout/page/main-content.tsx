@@ -48,8 +48,9 @@ export const MainContent = ({
     PageCategory.Mista,
     PageCategory.Turisticky_cil,
   ];
-  const showAktualniInfo = !!pageCategory && placeCategories.includes(pageCategory);
-  const textHtml = richTextToHtml(text);
+  const showAktualniInfo =
+    !!pageCategory && placeCategories.includes(pageCategory);
+  const textHtml = richTextToHtml(text, { currencyCode, exchangeRate });
   const showTableOfContents = pageCategory === PageCategory.Vstupni_podminky;
   const headings = showTableOfContents ? extractHeadings(textHtml) : [];
 
@@ -58,7 +59,9 @@ export const MainContent = ({
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
-          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>{textHtml}</ReactMarkdown>
+          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
+            {textHtml}
+          </ReactMarkdown>
         </div>
       </div>
 
@@ -87,7 +90,12 @@ export const MainContent = ({
 
               {exchangeRate && currencyCode && (
                 <div className="text-[26px] tracking-[0.01rem] text-[#333] mt-3">
-                  1 {currencyCode} = {exchangeRate.toLocaleString("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CZK
+                  1 {currencyCode} ={" "}
+                  {exchangeRate.toLocaleString("cs-CZ", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  CZK
                 </div>
               )}
             </div>

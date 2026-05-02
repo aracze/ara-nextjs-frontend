@@ -69,7 +69,7 @@
   .prose h3 {
     font-size: 21px;
     line-height: 1.5;
-    color: #314b69;
+    color: #005580;
     margin-top: 33px;
     margin-bottom: 13px;
     @apply font-heading font-semibold;
@@ -78,36 +78,51 @@
   .prose h4 {
     font-size: 18px;
     line-height: 1.5;
-    color: #212529;;
+    color: #212529;
     margin-top: 10px;
     margin-bottom: 10px;
     @apply font-heading font-semibold;
   }
 
-  /* List styles to match line heights */
+  /* List styles precisely matching ara.cz */
   .prose ul {
     list-style-type: disc;
     padding-left: 0;
-    margin-left: 40px;
-    margin-bottom: 30px;
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .prose ul ul {
+    list-style-type: circle;
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .prose ol {
     list-style-type: decimal;
-    padding-left: 1.5rem;
-    margin-top: -10px;
-    margin-bottom: 16px;
+    padding-left: 0;
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .prose li {
     font-size: 17px;
-    margin-bottom: 6px;
-    line-height: 2;
-    letter-spacing: .01rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+    letter-spacing: 0.01rem;
   }
 
   .prose li::marker {
     color: #353535;
+  }
+
+  /* Visual fix for double bullets when a list is nested inside a list item */
+  @supports selector(li:has(> ul)) {
+    .prose li:has(> ul),
+    .prose li:has(> ol) {
+      list-style-type: none;
+    }
   }
 
   /* Link styling to match original site */
@@ -146,5 +161,463 @@
     font-size: 12px;
     margin-top: 6px;
     color: #888;
+  }
+  /* Table styling within rich text (1:1 with production) */
+  .prose .rich-text-table-container {
+    @apply overflow-x-auto mb-10;
+
+    & + .rich-text-table-container {
+      @apply mt-10;
+    }
+
+    & .rich-text-table {
+      @apply w-full border-collapse bg-white m-0 text-[14px] text-[#212529] border-b border-[#dddddd];
+      line-height: 1.4;
+
+      & .rich-text-table-row {
+        @apply transition-colors duration-200 hover:bg-[#f5f5f5];
+      }
+
+      & .rich-text-table-cell {
+        @apply p-[10px_8px] border-t border-[#dddddd] text-center;
+
+        &:first-child {
+          @apply text-left pl-4;
+        }
+
+        &:not(:first-child) {
+          @apply border-l border-[#dddddd];
+        }
+
+        &.is-header {
+          @apply bg-[#297bbb] font-semibold pt-3 pb-3 border-t-0 border-l border-[rgba(255,255,255,0.2)];
+
+          &:first-child {
+            @apply border-l-0;
+          }
+
+          & p {
+            @apply text-white font-semibold;
+          }
+        }
+
+        /* Reset p tags inserted by Lexical - more specific selector to avoid !important */
+        & p {
+          margin: 0;
+          line-height: inherit;
+          color: inherit;
+          font-size: inherit;
+        }
+      }
+    }
+  }
+  /* Map styling within rich text */
+  .prose .rich-text-map-container {
+    @apply my-10;
+  }
+
+  .prose .rich-text-map-iframe-wrapper {
+    @apply relative w-full h-[300px] md:h-[360px] overflow-hidden rounded-xl shadow-md border border-gray-200;
+  }
+
+  .prose .rich-text-map-caption {
+    @apply text-sm text-gray-500 italic mt-3 text-center;
+  }
+
+  /* Seasonality (Calendar) styling - ARA.CZ Original Match */
+  .prose .rich-text-seasonality-container {
+    @apply my-8 w-full overflow-hidden font-sans;
+  }
+
+  .prose .seasonality-title {
+    @apply text-xl font-bold text-[#0c5c87] mb-4 border-none pb-0;
+  }
+
+  .prose .seasonality-ideal-text {
+    @apply text-[15px] text-[#4c4c4c] mb-5 leading-normal font-normal;
+    margin-top: 0 !important;
+  }
+
+  .prose .seasonality-grid {
+    @apply flex w-full mb-8;
+  }
+
+  .prose .seasonality-month {
+    @apply flex-1 flex flex-col text-center;
+  }
+
+  .prose .month-num {
+    @apply h-[46px] flex items-center justify-center text-[17px] font-normal text-white transition-all border-l border-white/40;
+  }
+
+  .prose .seasonality-month:first-child .month-num {
+    @apply rounded-l-[4px] border-l-0;
+  }
+
+  .prose .seasonality-month:last-child .month-num {
+    @apply rounded-r-[4px];
+  }
+
+  .prose .month-label {
+    @apply text-[12px] font-bold text-[#99a9b3] mt-3 tracking-normal;
+  }
+
+  /* Colors based on status */
+  .prose .seasonality-month.status-off .month-num {
+    @apply bg-[#d6e0ec];
+  }
+
+  .prose .seasonality-month.status-mid .month-num {
+    @apply bg-[#287bbb];
+  }
+
+  .prose .seasonality-month.status-peak .month-num {
+    @apply bg-[#3bba9c];
+  }
+
+  /* Legend */
+  .prose .seasonality-legend {
+    @apply flex flex-wrap justify-center gap-x-6 gap-y-3 mt-8 text-[11px];
+  }
+
+  .prose .legend-item {
+    @apply flex items-center gap-2 text-[#2d2d2d];
+  }
+
+  .prose .legend-dot {
+    @apply w-3 h-3 rounded-[4px];
+  }
+
+  .prose .legend-item.status-off .legend-dot {
+    @apply bg-[#d6e0ec];
+  }
+  .prose .legend-item.status-mid .legend-dot {
+    @apply bg-[#287bbb];
+  }
+  .prose .legend-item.status-peak .legend-dot {
+    @apply bg-[#3bba9c];
+  }
+
+  .prose .legend-label {
+    @apply font-bold text-[#2d2d2d] text-[12px];
+  }
+
+  .prose .legend-time {
+    @apply font-normal text-[#2d2d2d];
+  }
+
+  /* ─── Nice to Know (Praktické informace) ─── */
+
+  .nice-to-know {
+    @apply !w-full !my-8;
+  }
+
+  .nice-to-know__wrap {
+    @apply !flex !flex-wrap !justify-between;
+    padding: 27px 0 44px;
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+
+  .nice-to-know-item {
+    flex: calc(100% / 5);
+    text-align: center;
+    padding: 0 15px;
+  }
+
+  .nice-to-know-item__content__header {
+    height: 63px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nice-to-know-item__body {
+    margin-top: 24px;
+  }
+
+  .nice-to-know-item__body .nice-to-know-item__title {
+    color: #99a9b3 !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    margin-bottom: -6px !important;
+    display: block !important;
+    line-height: 1.2 !important;
+  }
+
+  .nice-to-know-item__body span {
+    color: rgb(59, 68, 79) !important;
+    font-size: 16px !important;
+    display: block !important;
+    margin-top: 4px !important;
+  }
+
+  /* Language bubble */
+  .language-bubble {
+    padding: 11px 0;
+    border-radius: 40px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff !important;
+    background-color: #3b444f;
+    width: 150px;
+    height: 63px;
+    line-height: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .language-bubble span {
+    font-size: 11px !important;
+    font-weight: normal !important;
+    color: #ffffff !important;
+  }
+
+  /* Electricity icon */
+  .electricity-icon {
+    font-size: 48px;
+    color: #67747c;
+    line-height: 1;
+    border: 2px solid #67747c;
+    border-radius: 8px;
+    padding: 2px 10px;
+  }
+
+  /* Weather icon */
+  .weather-icon {
+    font-size: 48px;
+    color: #67747c;
+    line-height: 1;
+  }
+
+  /* Currency */
+  .nice-to-know-item__content__header--currency {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 5px;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 20px;
+  }
+
+  .nice-to-know-item__content__header--currency > span {
+    display: inline-block;
+    padding: 3px 0 0;
+    line-height: 32px;
+    font-size: 24px;
+    font-weight: bold;
+    color: rgb(59, 68, 79) !important;
+  }
+
+  .nice-to-know-item__content__header--foreign {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: rgb(59, 68, 79) !important;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .circleArrow {
+    border: 3px solid transparent;
+    border-top-color: black;
+    border-left-color: black;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    position: relative;
+    transform: rotate(-45deg);
+    display: inline-block;
+    vertical-align: bottom;
+    margin-left: 8px;
+  }
+
+  .circleArrow:before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 80%;
+    height: 0;
+    width: 0;
+    border-left: 5px solid black;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    transform: rotate(45deg);
+  }
+
+  /* Time */
+  .nice-to-know__item--time-header {
+    background: #2c3643 !important;
+    border-radius: 3px !important;
+    color: white !important;
+    width: 110px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    height: 80px !important;
+    justify-content: center !important;
+    padding-bottom: 5px !important;
+  }
+
+  .nice-to-know__item--time-header:after {
+    border-top: 1px solid #505a60 !important;
+    top: 40% !important;
+    width: 30% !important;
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    margin: 0 auto !important;
+    left: 35% !important;
+  }
+
+  .nice-to-know-item__day {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    padding-top: 4px !important;
+    color: white !important;
+  }
+
+  .nice-to-know-item__time {
+    display: block !important;
+    font-size: 27px !important;
+    padding: 6px 0 0px !important;
+    color: white !important;
+    line-height: 1 !important;
+    margin-bottom: 5px !important;
+  }
+
+  .nice-to-know-item__value-wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    color: rgb(59, 68, 79) !important;
+    font-size: 16px !important;
+    margin-top: 4px !important;
+    width: 100% !important;
+  }
+
+  .nice-to-know-item__value-wrap span {
+    display: inline !important;
+    margin-top: 0 !important;
+  }
+
+  .nice-to-know-item__time-diff {
+    font-weight: normal !important;
+  }
+
+  /* Denni naklady (Mena a ceny) */
+  .prose .pi-budget {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .prose .pi-budget__heading {
+    flex: 100%;
+    color: #005580;
+    font-size: 19px;
+    line-height: 1.7;
+    margin-top: 3px;
+    margin-bottom: 13px;
+    font-weight: 600;
+  }
+
+  .prose .pi-budget-container {
+    flex: calc(100% / 3);
+    padding-left: 10px;
+  }
+
+  .prose .pi-budget-container:first-of-type {
+    padding-left: 0;
+  }
+
+  .prose .pi-budget-container__title {
+    border-bottom-style: solid;
+    border-bottom-width: 3px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    position: relative;
+  }
+
+  .prose .pi-budget-container__title::after {
+    height: 12px;
+    width: 12px;
+    background: #fff;
+    border-radius: 6px;
+    border-style: solid;
+    border-width: 3px;
+    position: absolute;
+    display: block;
+    bottom: -8px;
+    left: 0;
+    content: "";
+  }
+
+  .prose .pi-budget-container__title--budget,
+  .prose .pi-budget-container__title--budget::after {
+    border-color: #3bba9c;
+  }
+
+  .prose .pi-budget-container__title--midrange,
+  .prose .pi-budget-container__title--midrange::after {
+    border-color: #287bbb;
+  }
+
+  .prose .pi-budget-container__title--top,
+  .prose .pi-budget-container__title--top::after {
+    border-color: #ba9a3b;
+  }
+
+  .prose .pi-budget-container__range h5 {
+    color: #99a9b3;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+    display: block;
+    line-height: 1.35;
+  }
+
+  .prose .pi-budget-container__price {
+    font-size: 20px;
+    color: #212529;
+    margin: 10px 0;
+    overflow-wrap: break-word;
+  }
+
+  .prose ul.pi-budget-container__list {
+    margin-left: 21px;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style-type: disc;
+  }
+
+  .prose .pi-budget-container__list__item {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+
+  @media (max-width: 767px) {
+    .prose .pi-budget-container {
+      flex: 100%;
+      padding-left: 0;
+      padding-right: 0;
+      padding-bottom: 22px;
+    }
   }
 }

@@ -15,24 +15,29 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
     const update = () => {
       try {
         const now = new Date();
-        const opts: Intl.DateTimeFormatOptions = timezone ? { timeZone: timezone } : {};
+        const opts: Intl.DateTimeFormatOptions = timezone
+          ? { timeZone: timezone }
+          : {};
 
-        const day = now.toLocaleDateString("cs-CZ", { weekday: "long", ...opts }).toUpperCase();
-        const time = now.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", ...opts });
+        const day = now
+          .toLocaleDateString("cs-CZ", { weekday: "long", ...opts })
+          .toUpperCase();
+        const time = now.toLocaleTimeString("cs-CZ", {
+          hour: "2-digit",
+          minute: "2-digit",
+          ...opts,
+        });
 
-        // Calculate offset from local time
+        // Calculate offset from Prague time
         let offset = "";
         if (timezone) {
-          const localMinutes = now.getHours() * 60 + now.getMinutes();
-          const remoteStr = now.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: timezone });
-          const [rh, rm] = remoteStr.split(":").map(Number);
-          const remoteMinutes = rh * 60 + rm;
-          const diffHours = Math.round((remoteMinutes - localMinutes) / 60);
-          if (diffHours !== 0) {
-            offset = `${diffHours > 0 ? "+" : ""}${diffHours}H`;
-          } else {
-            offset = "0H";
-          }
+          const destinationOffset = getOffsetHours(timezone, now);
+          const pragueOffset = getOffsetHours("Europe/Prague", now);
+          const diffHours = destinationOffset - pragueOffset;
+          const value = Number.isInteger(diffHours)
+            ? `${diffHours}`
+            : diffHours.toFixed(1);
+          offset = `${diffHours >= 0 ? "+" : ""}${value}H`;
         }
 
         setData({ day, time, offset });
@@ -64,4 +69,23 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
       )}
     </div>
   );
+}
+
+function getOffsetHours(timeZone: string, date: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+    hour: "2-digit",
+  }).formatToParts(date);
+
+  const offsetName = parts.find((part) => part.type === "timeZoneName")?.value;
+  if (!offsetName) return 0;
+
+  const match = offsetName.match(/^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/);
+  if (!match) return 0;
+
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = Number(match[2] ?? 0);
+  const minutes = Number(match[3] ?? 0);
+  return sign * (hours + minutes / 60);
 }

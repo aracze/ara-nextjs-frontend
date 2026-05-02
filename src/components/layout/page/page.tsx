@@ -1,12 +1,12 @@
-import { Page as PayloadPage } from '@/types/payload';
-import { ArticlesList } from '@/components/features/articles-list';
-import { HeroSection } from './hero-section';
-import { Subnavigation } from './subnavigation';
-import { MainContent } from './main-content';
-import { PlacesToVisit } from './places-to-visit';
-import { fetchPageByFullSlug } from '@/lib/payload';
-import { fetchExchangeRate } from '@/lib/exchange-rate';
-import { PageCategory } from '@/types/payload';
+import { Page as PayloadPage } from "@/types/payload";
+import { ArticlesList } from "@/components/features/articles-list";
+import { HeroSection } from "./hero-section";
+import { Subnavigation } from "./subnavigation";
+import { MainContent } from "./main-content";
+import { PlacesToVisit } from "./places-to-visit";
+import { fetchPageByFullSlug } from "@/lib/payload";
+import { fetchExchangeRate } from "@/lib/exchange-rate";
+import { PageCategory } from "@/types/payload";
 
 const rootPageCategories: PageCategory[] = [
   PageCategory.Mista,
@@ -22,8 +22,10 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
 
   const imageUrl = getHeroImage(page, safeRootPage);
 
-  const exchangeData = page.detail?.currencyCode
-    ? await fetchExchangeRate(page.detail.currencyCode)
+  const effectiveCurrencyCode =
+    page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
+  const exchangeData = effectiveCurrencyCode
+    ? await fetchExchangeRate(effectiveCurrencyCode)
     : null;
 
   return (
@@ -50,8 +52,8 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           text={page.text}
           pageChildren={pageChildren}
           pageCategory={page.category}
-          timezone={page.detail?.timezone}
-          currencyCode={page.detail?.currencyCode}
+          timezone={page.detail?.timezone || safeRootPage?.detail?.timezone}
+          currencyCode={effectiveCurrencyCode}
           exchangeRate={exchangeData?.rate}
         />
 
@@ -77,7 +79,7 @@ function getHeroImage(page: PayloadPage, rootPage: PayloadPage) {
     pageForHeroImage = rootPage;
   }
   return pageForHeroImage.featuredImage?.image?.url
-    ? pageForHeroImage.featuredImage.image.url.startsWith('/')
+    ? pageForHeroImage.featuredImage.image.url.startsWith("/")
       ? new URL(
           pageForHeroImage.featuredImage.image.url,
           process.env.PAYLOAD_BASE_API_URL,
@@ -89,7 +91,7 @@ function getHeroImage(page: PayloadPage, rootPage: PayloadPage) {
 async function fetchRootPage(page: PayloadPage): Promise<PayloadPage> {
   let rootPage = page;
   if (!rootPageCategories.includes(page.category)) {
-    const rootPageUrl = page.fullSlug.slice(0, page.fullSlug.lastIndexOf('/'));
+    const rootPageUrl = page.fullSlug.slice(0, page.fullSlug.lastIndexOf("/"));
     const { data: rootPageData } = await fetchPageByFullSlug(rootPageUrl);
     rootPage = rootPageData?.pages[0];
   }
