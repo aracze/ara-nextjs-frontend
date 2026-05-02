@@ -86,6 +86,8 @@ export interface Page {
   detail?: {
     timezone?: string | null;
     currencyCode?: string | null;
+    locative?: string | null;
+    genitive?: string | null;
   } | null;
 }
 

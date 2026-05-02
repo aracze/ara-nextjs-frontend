@@ -3,6 +3,34 @@ import { PageChild, PageCategory } from "@/types/payload";
 
 const hiddenCategories: string[] = [PageCategory.Misto_k_navstiveni];
 
+const legacyMenuOrder = [
+  "mista",
+  "vstup",
+  "cesta",
+  "pocasi",
+  "doprava",
+  "mena",
+  "zdravi",
+  "kultura",
+  "jidlo",
+  "clanky",
+];
+
+const normalizeMenuLabel = (value: string) =>
+  value
+    .toLocaleLowerCase("cs")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const getLegacyMenuRank = (pageChild: PageChild): number => {
+  const normalizedTitle = normalizeMenuLabel(pageChild.title || "");
+  const index = legacyMenuOrder.findIndex((token) =>
+    normalizedTitle.startsWith(token),
+  );
+
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+};
+
 export const Subnavigation = ({
   title,
   rootFullSlug,
@@ -18,6 +46,15 @@ export const Subnavigation = ({
   const visibleChildren = pageChildren?.filter(
     (child) => !child.category || !hiddenCategories.includes(child.category),
   );
+  const sortedChildren = [...(visibleChildren || [])]
+    .map((child, originalIndex) => ({ child, originalIndex }))
+    .sort((a, b) => {
+      const rankDiff = getLegacyMenuRank(a.child) - getLegacyMenuRank(b.child);
+      if (rankDiff !== 0) return rankDiff;
+
+      return a.originalIndex - b.originalIndex;
+    })
+    .map(({ child }) => child);
 
   return (
     <div className="bg-white border-b border-gray-100 relative z-30 overflow-x-auto whitespace-nowrap">
@@ -33,7 +70,7 @@ export const Subnavigation = ({
           >
             {title}
           </Link>
-          {visibleChildren?.map((pageChild) => {
+          {sortedChildren.map((pageChild) => {
             const isActive =
               !isRootActive &&
               (currentPageFullSlug === pageChild.fullSlug ||

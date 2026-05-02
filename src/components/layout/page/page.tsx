@@ -6,13 +6,7 @@ import { MainContent } from "./main-content";
 import { PlacesToVisit } from "./places-to-visit";
 import { fetchPageByFullSlug } from "@/lib/payload";
 import { fetchExchangeRate } from "@/lib/exchange-rate";
-import { PageCategory } from "@/types/payload";
-
-const rootPageCategories: PageCategory[] = [
-  PageCategory.Mista,
-  PageCategory.Turisticky_cil,
-  PageCategory.Misto_k_navstiveni,
-];
+import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 
 export const Page = async ({ page }: { page: PayloadPage }) => {
   const rootPage = await fetchRootPage(page);
@@ -33,7 +27,7 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
       <article key={page.id} className="w-full">
         {/* 1. HERO SECTION (initial-photo) */}
         <HeroSection
-          title={page.title}
+          title={buildPageTitle(page, safeRootPage)}
           imageUrl={imageUrl}
           styleCss={page.featuredImage?.featureImageStyleCss || undefined}
           filterId={`blurFilter-${page.id}`}

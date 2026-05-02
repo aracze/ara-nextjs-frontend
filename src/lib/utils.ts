@@ -87,11 +87,53 @@ export function richTextToHtml(
     case "listitem":
       return `<li>${children}</li>`;
     case "link": {
-      const url = escapeHtml(String((node.url as string) ?? ""));
-      const target = node.newTab
-        ? ' target="_blank" rel="noopener noreferrer"'
-        : "";
-      return `<a href="${url}"${target}>${children}</a>`;
+      const linkFields = node.fields as Record<string, unknown> | undefined;
+      const linkType = String((linkFields?.linkType as string | undefined) ?? "");
+      const linkedDoc = linkFields?.doc as
+        | { relationTo?: unknown; value?: unknown }
+        | { fullSlug?: unknown; slug?: unknown }
+        | number
+        | string
+        | undefined;
+      const docValue =
+        linkedDoc && typeof linkedDoc === "object" && "value" in linkedDoc
+          ? (linkedDoc as { value?: unknown }).value
+          : linkedDoc;
+      const rawUrl =
+        (linkFields?.url as string | undefined) ??
+        (linkType === "internal" && docValue && typeof docValue === "object"
+          ? String(
+              (docValue as { fullSlug?: unknown }).fullSlug ??
+                (docValue as { slug?: unknown }).slug ??
+                "",
+            )
+          : undefined) ??
+        (node.url as string | undefined) ??
+        "";
+      const newTab =
+        (linkFields?.newTab as boolean | undefined) ??
+        (node.newTab as boolean | undefined) ??
+        false;
+      const normalizedUrl =
+        linkType === "internal" && rawUrl && !rawUrl.startsWith("/")
+          ? `/${rawUrl}`
+          : rawUrl;
+      const url = escapeHtml(String(normalizedUrl));
+      const nofollow = Boolean(linkFields?.nofollow);
+      const relTokens: string[] = [];
+
+      if (nofollow) {
+        relTokens.push("nofollow");
+      }
+
+      if (newTab) {
+        relTokens.push("noopener", "noreferrer");
+      }
+
+      const target = newTab ? ' target="_blank"' : "";
+      const rel = relTokens.length > 0 ? ` rel="${relTokens.join(" ")}"` : "";
+
+      return `<a href="${url}"${target}${rel}>${children}</a>`;
     }
     case "upload": {
       const src = escapeHtml(

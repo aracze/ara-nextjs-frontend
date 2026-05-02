@@ -1,6 +1,7 @@
 import { Page } from "@/components/layout/page/page";
 import { Article } from "@/components/layout/article/article";
 import { fetchPageByFullSlug, fetchArticleBySlug } from "@/lib/payload";
+import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -15,7 +16,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // 1. Try fetching as a Page
   const { data: pageData } = await fetchPageByFullSlug(fullSlug);
   if (pageData?.pages.length > 0) {
-    return { title: pageData.pages[0]?.title };
+    const page = pageData.pages[0];
+
+    let rootPage = page;
+    if (!rootPageCategories.includes(page.category)) {
+      const rootSegment = page.fullSlug.replace(/^\/+/, "").split("/")[0];
+      if (rootSegment) {
+        const { data: rootPageData } = await fetchPageByFullSlug(rootSegment);
+        rootPage = rootPageData?.pages[0] || page;
+      }
+    }
+
+    return { title: buildPageTitle(page, rootPage) };
   }
 
   // 2. If not a page, try fetching as an Article (last segment = article slug)

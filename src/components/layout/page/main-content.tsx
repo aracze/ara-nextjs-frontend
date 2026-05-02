@@ -51,7 +51,13 @@ export const MainContent = ({
   const showAktualniInfo =
     !!pageCategory && placeCategories.includes(pageCategory);
   const textHtml = richTextToHtml(text, { currencyCode, exchangeRate });
-  const showTableOfContents = pageCategory === PageCategory.Vstupni_podminky;
+  const tocCategories: PageCategory[] = [
+    PageCategory.Vstupni_podminky,
+    PageCategory.Mena_a_ceny,
+    PageCategory.Pocasi,
+    PageCategory.Cesta,
+  ];
+  const showTableOfContents = !!pageCategory && tocCategories.includes(pageCategory);
   const headings = showTableOfContents ? extractHeadings(textHtml) : [];
 
   return (
