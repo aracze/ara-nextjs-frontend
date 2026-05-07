@@ -1,4 +1,4 @@
-import { cache } from 'react';
+import { cache } from "react";
 
 interface FrankfurterResponse {
   base: string;
@@ -9,7 +9,7 @@ interface FrankfurterResponse {
 async function fetchExchangeRateRaw(
   currencyCode: string,
 ): Promise<{ rate: number; base: string } | null> {
-  if (!currencyCode || currencyCode === 'CZK') return null;
+  if (!currencyCode || currencyCode === "CZK") return null;
 
   try {
     const res = await fetch(

@@ -21,6 +21,11 @@ type RichTextRenderContext = {
   exchangeRate?: number | null;
 };
 
+const CC_ICON_SVG =
+  '<svg viewBox="0 0 640 640" aria-hidden="true" focusable="false"><path d="M317.8 278.9L284.6 296.2C275.2 276.6 259.4 276.3 257.1 276.3C235 276.3 223.9 290.9 223.9 320.1C223.9 343.7 233.1 363.9 257.1 363.9C271.6 363.9 281.7 356.8 287.7 342.6L318.3 358.1C312.1 369.6 292.6 397.1 253.2 397.1C230.6 397.1 179.2 386.8 179.2 320.1C179.2 261.4 222.2 243 251.8 243C282.5 243 304.5 254.9 317.8 278.9zM460.8 278.9L428 296.2C418.5 276.4 402.3 276.3 400.1 276.3C378 276.3 366.9 290.9 366.9 320.1C366.9 343.6 376.1 363.9 400.1 363.9C414.5 363.9 424.7 356.8 430.6 342.6L461.6 358.1C459.5 361.9 440.2 397.1 396.5 397.1C373.8 397.1 322.5 387.2 322.5 320.1C322.5 261.4 365.5 243 395.1 243C425.8 243 447.7 254.9 460.7 278.9zM319.6 72C176.7 72 72 187.1 72 320.1C72 458.5 185.6 568.1 319.6 568.1C449.5 568.1 568 467.2 568 320.1C568 182.2 461.4 72 319.6 72zM320.5 522.8C208 522.8 116.8 429.8 116.8 320C116.8 214.6 202.2 116.7 320.5 116.7C433 116.7 523.3 206.2 523.3 320C523.3 441.7 423.6 522.8 320.5 522.8z"/></svg>';
+
+const allowedHeadingTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
+
 /**
  * Convert a Lexical rich text JSON tree to an HTML string.
  * Falls back to returning the value as-is if it's already a string.
@@ -75,7 +80,10 @@ export function richTextToHtml(
     case "paragraph":
       return `<p>${children}</p>`;
     case "heading": {
-      const tag = (node.tag as string) || "h2";
+      const rawTag = String(
+        (node.tag as string | undefined) || "h2",
+      ).toLowerCase();
+      const tag = allowedHeadingTags.has(rawTag) ? rawTag : "h2";
       return `<${tag}>${children}</${tag}>`;
     }
     case "quote":
@@ -88,7 +96,9 @@ export function richTextToHtml(
       return `<li>${children}</li>`;
     case "link": {
       const linkFields = node.fields as Record<string, unknown> | undefined;
-      const linkType = String((linkFields?.linkType as string | undefined) ?? "");
+      const linkType = String(
+        (linkFields?.linkType as string | undefined) ?? "",
+      );
       const linkedDoc = linkFields?.doc as
         | { relationTo?: unknown; value?: unknown }
         | { fullSlug?: unknown; slug?: unknown }
@@ -156,6 +166,7 @@ export function richTextToHtml(
         const url = String(image.url);
         const alt = escapeHtml(String(image.alt ?? ""));
         const caption = String(fields.caption ?? "");
+        const attribution = buildImageAttributionHtml(image);
         const cloudinaryMatch = url.match(
           /res\.cloudinary\.com\/([^/]+)\/image\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/,
         );
@@ -166,12 +177,20 @@ export function richTextToHtml(
           const fullUrl = `${base}/c_fit,w_800/${publicId}`;
           const defaultUrl = `${base}/c_fill,g_center,h_420,w_790/${publicId}`;
           const smallUrl = `${base}/c_fit,w_420/${publicId}`;
-          html = `<figure class="image-wrapper"><a href="${fullUrl}" title="${alt}"><img alt="${alt}" src="${defaultUrl}" srcset="${smallUrl} 420w, ${defaultUrl} 747w" sizes="(min-width: 480px) calc(100vw - 60px), calc(100vw - 30px)" /></a>`;
+          html = `<figure class="image-wrapper"><a href="${fullUrl}" rel="lightbox"><img alt="${alt}" src="${defaultUrl}" srcset="${smallUrl} 420w, ${defaultUrl} 747w" sizes="(min-width: 480px) calc(100vw - 60px), calc(100vw - 30px)" /></a>`;
         } else {
           html = `<figure class="image-wrapper"><img src="${escapeHtml(url)}" alt="${alt}" />`;
         }
-        if (caption) {
-          html += `<figcaption>${escapeHtml(caption)}</figcaption>`;
+
+        if (caption || attribution) {
+          html += `<figcaption>`;
+          if (caption) {
+            html += `<span class="image-caption">${escapeHtml(caption)}</span>`;
+          }
+          if (attribution) {
+            html += `<span class="image-attribution-tooltip"><button type="button" class="image-attribution-trigger" aria-label="Informace o licenci obrázku">${CC_ICON_SVG}</button><span class="image-attribution-content">${attribution}</span></span>`;
+          }
+          html += `</figcaption>`;
         }
         html += "</figure>";
         return html;
@@ -189,8 +208,8 @@ export function richTextToHtml(
       if (fields?.blockType === "seasonalityBlock") {
         const prefixText = String(fields.prefixText ?? "");
         const idealText = String(fields.idealMonthsText ?? "");
-        const months = (fields.months as any[]) ?? [];
-        const legend = (fields.legend as any[]) ?? [];
+        const months = Array.isArray(fields.months) ? fields.months : [];
+        const legend = Array.isArray(fields.legend) ? fields.legend : [];
 
         const monthLabels = [
           "Led",
@@ -211,7 +230,7 @@ export function richTextToHtml(
           `<div class="rich-text-seasonality-container">${idealText || prefixText ? `<div class="seasonality-ideal-text">${escapeHtml(prefixText)} <strong>${escapeHtml(idealText)}</strong></div>` : ""}<div class="seasonality-grid">` +
           months
             .map(
-                (m, i) =>
+              (m, i) =>
                 `<div class="seasonality-month status-${sanitizeSeasonalityStatus(m.status)}"><div class="month-num">${escapeHtml(String(m.monthNumber ?? i + 1))}</div><div class="month-label">${monthLabels[i]}</div></div>`,
             )
             .join("") +
@@ -219,7 +238,8 @@ export function richTextToHtml(
             .map((l: any) => {
               const parts = String(l.label ?? "").split("(");
               const name = parts[0].trim();
-              const rawTime = parts.length > 1 ? parts[1].replace(/\)$/, "") : "";
+              const rawTime =
+                parts.length > 1 ? parts[1].replace(/\)$/, "") : "";
               const time =
                 parts.length > 1
                   ? ` <span class="legend-time">(${escapeHtml(rawTime)})</span>`
@@ -230,7 +250,7 @@ export function richTextToHtml(
         return html;
       }
       if (fields?.blockType === "niceToKnowBlock") {
-        const items = (fields.items as any[]) ?? [];
+        const items = Array.isArray(fields.items) ? fields.items : [];
         let html = `<div class="nice-to-know"><div class="nice-to-know__wrap">`;
         items.forEach((item: any) => {
           const t = sanitizeNiceToKnowType(item.type);
@@ -265,7 +285,10 @@ export function richTextToHtml(
               <span class="nice-to-know-item__time">${escapeHtml(timeData.time)}</span>
             </div>`;
           }
-          const timeData = t === "time" ? getTimeDataForTimezone(String(item.timezone || "Europe/Prague")) : null;
+          const timeData =
+            t === "time"
+              ? getTimeDataForTimezone(String(item.timezone || "Europe/Prague"))
+              : null;
           html += `<div class="nice-to-know-item nice-to-know__item--${t}"><div class="nice-to-know-item__content">${headerHtml}<div class="nice-to-know-item__body"><span class="nice-to-know-item__title">${escapeHtml(item.title || "")}</span><span class="nice-to-know-item__value-wrap"><span>${escapeHtml(item.value || "")}</span>${t === "time" && timeData ? ` <span class="nice-to-know-item__time-diff">${escapeHtml(timeData.offsetLabel)}</span>` : ""}</span></div></div></div>`;
         });
         html += `</div></div>`;
@@ -284,7 +307,10 @@ export function richTextToHtml(
           const items = Array.isArray(column.items) ? column.items : [];
 
           html += `<div class="pi-budget-container"><div class="pi-budget-container__title pi-budget-container__title--${tier}"><div class="pi-budget-container__range"><h5>${rangeLabel}</h5></div><div class="pi-budget-container__price">${price}</div></div><ul class="pi-budget-container__list">${items
-            .map((item: any) => `<li class="pi-budget-container__list__item">${escapeHtml(String(item?.text ?? ""))}</li>`)
+            .map(
+              (item: any) =>
+                `<li class="pi-budget-container__list__item">${escapeHtml(String(item?.text ?? ""))}</li>`,
+            )
             .join("")}</ul></div>`;
         });
 
@@ -304,6 +330,37 @@ function escapeHtml(str: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function buildImageAttributionHtml(image: Record<string, unknown>): string {
+  const author = String(image.author ?? "").trim();
+  const source = String(image.source ?? "").trim();
+  const sourceLink = String(image.sourceLink ?? "").trim();
+  const license = String(image.creativeCommonsLicense ?? "").trim();
+
+  const parts: string[] = [];
+
+  if (author) {
+    parts.push(`Foto: ${escapeHtml(author)}`);
+  }
+
+  if (source) {
+    const renderedSource = sourceLink
+      ? `<a href="${escapeHtml(sourceLink)}" target="_blank" rel="nofollow noopener noreferrer">${escapeHtml(source)}</a>`
+      : escapeHtml(source);
+
+    parts.push(renderedSource);
+  } else if (sourceLink) {
+    parts.push(
+      `<a href="${escapeHtml(sourceLink)}" target="_blank" rel="nofollow noopener noreferrer">zdroj</a>`,
+    );
+  }
+
+  if (license) {
+    parts.push(escapeHtml(license));
+  }
+
+  return parts.join(" · ");
 }
 
 function sanitizeSeasonalityStatus(status: unknown): "off" | "mid" | "peak" {

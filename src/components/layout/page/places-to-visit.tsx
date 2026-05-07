@@ -13,7 +13,11 @@ export const PlacesToVisit: React.FC<PlacesToVisitProps> = ({
 }) => {
   const places = pageChildren.filter((child) => {
     const cat = child.category?.trim();
-    return cat === PageCategory.Misto_k_navstiveni;
+    return (
+      cat === PageCategory.Misto_k_navstiveni ||
+      cat === PageCategory.Turisticky_cil ||
+      cat === PageCategory.Mista
+    );
   });
 
   if (places.length === 0) return null;

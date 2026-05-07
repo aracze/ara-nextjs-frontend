@@ -56,8 +56,14 @@ export const MainContent = ({
     PageCategory.Mena_a_ceny,
     PageCategory.Pocasi,
     PageCategory.Cesta,
+    PageCategory.Doprava,
+    PageCategory.Zdravi_a_bezpeci,
+    PageCategory.Jazyk_a_kultura,
+    PageCategory.Jidlo_a_pit,
+    PageCategory.Prakticke_informace,
   ];
-  const showTableOfContents = !!pageCategory && tocCategories.includes(pageCategory);
+  const showTableOfContents =
+    !!pageCategory && tocCategories.includes(pageCategory);
   const headings = showTableOfContents ? extractHeadings(textHtml) : [];
 
   return (

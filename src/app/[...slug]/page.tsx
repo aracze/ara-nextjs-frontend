@@ -82,10 +82,7 @@ export default async function PageRoute({ params }: Props) {
 
     if (articleData?.articles.length > 0) {
       return (
-        <Article
-          article={articleData.articles[0]}
-          contextSlug={parentSlug}
-        />
+        <Article article={articleData.articles[0]} contextSlug={parentSlug} />
       );
     }
   }

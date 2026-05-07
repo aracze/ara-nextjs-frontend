@@ -34,10 +34,13 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
           const destinationOffset = getOffsetHours(timezone, now);
           const pragueOffset = getOffsetHours("Europe/Prague", now);
           const diffHours = destinationOffset - pragueOffset;
-          const value = Number.isInteger(diffHours)
-            ? `${diffHours}`
-            : diffHours.toFixed(1);
-          offset = `${diffHours >= 0 ? "+" : ""}${value}H`;
+          const totalMinutes = Math.round(diffHours * 60);
+          const sign = totalMinutes >= 0 ? "+" : "-";
+          const absMinutes = Math.abs(totalMinutes);
+          const hours = Math.floor(absMinutes / 60);
+          const minutes = absMinutes % 60;
+          const value = `${hours}${minutes ? `:${minutes.toString().padStart(2, "0")}` : ""}`;
+          offset = `${sign}${value}H`;
         }
 
         setData({ day, time, offset });
