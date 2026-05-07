@@ -42,11 +42,13 @@ Does it need...?
 
 ### Fetch Strategy
 
-| Pattern        | Use                      |
-| -------------- | ------------------------ |
-| **Default**    | Static (cached at build) |
-| **Revalidate** | ISR (time-based refresh) |
-| **No-store**   | Dynamic (every request)  |
+| Pattern        | Use                              |
+| -------------- | -------------------------------- |
+| **Default**    | Dynamic (no-store) [Next.js 15+] |
+| **Revalidate** | ISR (time-based refresh)         |
+| **No-store**   | Dynamic (every request)          |
+
+> **Note:** Since Next.js 15, `fetch` requests are no longer cached by default. To opt into caching, pass `{ cache: 'force-cache' }` or `{ next: { revalidate: N } }` for ISR.
 
 ### Data Flow
 
@@ -206,4 +208,4 @@ app/
 
 ## When to Use
 
-This skill is applicable to execute the workflow or actions described in the overview.
+Use this guide when architecting new Next.js App Router projects, during code reviews, or when deciding component boundaries and data fetching strategies.

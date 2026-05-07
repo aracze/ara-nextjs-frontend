@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Page, ImageLink } from "@/types/payload";
 import Search from "@/components/features/search/search";
+import DOMPurify from "dompurify";
 
 export function Header({
   pages,
@@ -39,11 +40,14 @@ export function Header({
                 <div
                   className="h-[26px] w-auto flex items-center [&_svg]:h-[26px] [&_svg]:w-auto"
                   dangerouslySetInnerHTML={{
-                    __html: logo.svgCode
-                      .replace(/<script[\s\S]*?<\/script>/gi, "")
-                      .replace(/\son\w+\s*=/gi, " data-removed=")
-                      .replace(/fill="#fff"/g, 'fill="white"')
-                      .replace(/fill="#[a-f0-9]{6}"/gi, 'fill="white"'),
+                    __html:
+                      typeof window !== "undefined"
+                        ? DOMPurify.sanitize(logo.svgCode, {
+                            USE_PROFILES: { svg: true },
+                          })
+                            .replace(/fill="#fff"/g, 'fill="white"')
+                            .replace(/fill="#[a-f0-9]{6}"/gi, 'fill="white"')
+                        : logo.svgCode,
                   }}
                 />
               ) : (

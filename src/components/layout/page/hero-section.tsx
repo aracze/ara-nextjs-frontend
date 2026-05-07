@@ -33,7 +33,10 @@ export const HeroSection = ({
       {/* Title Content - Overlaid like in Grails */}
       <div className="relative z-[101] h-full flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav className="mb-4 flex items-center gap-2 -translate-y-[24px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm">
+          <nav
+            aria-label="Breadcrumb navigation"
+            className="mb-4 flex items-center gap-2 -translate-y-[24px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
+          >
             {breadcrumbs.map((bc, idx) => (
               <div key={bc.href} className="flex items-center gap-1.5">
                 <Link
@@ -43,7 +46,12 @@ export const HeroSection = ({
                   {bc.title}
                 </Link>
                 {idx < breadcrumbs.length - 1 && (
-                  <span className="text-gray-300 text-[12px] px-0.5">/</span>
+                  <span
+                    className="text-gray-300 text-[12px] px-0.5"
+                    aria-hidden="true"
+                  >
+                    /
+                  </span>
                 )}
               </div>
             ))}

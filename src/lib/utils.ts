@@ -196,7 +196,10 @@ export function richTextToHtml(
         return html;
       }
       if (fields?.blockType === "mapBlock") {
-        const iframeUrl = escapeHtml(String(fields.iframeUrl ?? ""));
+        const rawIframeUrl = String(fields.iframeUrl ?? "").trim();
+        if (!rawIframeUrl) return "";
+
+        const iframeUrl = escapeHtml(rawIframeUrl);
         const caption = String(fields.caption ?? "");
         let html = `<div class="rich-text-map-container"><div class="rich-text-map-iframe-wrapper"><iframe src="${iframeUrl}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
         if (caption) {

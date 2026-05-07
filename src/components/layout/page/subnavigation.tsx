@@ -74,6 +74,15 @@ export const Subnavigation = ({
     if (child.category && hiddenCategories.includes(child.category)) {
       return false;
     }
+    // On sub-places, exclude individual practical info pages as they are collapsed
+    // into a single "Praktické informace" link pointing to the root.
+    if (
+      isSubPlace &&
+      child.category &&
+      practicalInfoCategories.includes(child.category)
+    ) {
+      return false;
+    }
     return true;
   });
 

@@ -226,7 +226,9 @@
     font-style: normal;
     line-height: 1.4;
     text-align: left;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     opacity: 0;
     visibility: hidden;
