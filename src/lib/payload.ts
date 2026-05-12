@@ -5,6 +5,7 @@ import {
   Article,
   GlobalHeader,
   Homepage,
+  GlobalFooter,
 } from "@/types/payload";
 import { getPayloadURL, isProduction } from "./utils";
 import { cache } from "react";
@@ -195,3 +196,22 @@ export const fetchPageByFullSlug = cache(async (slug: string) => {
 });
 
 export const fetchRootPages = cache(fetchRootPagesPayload);
+
+async function fetchFooterPayload(): Promise<GlobalFooter | null> {
+  try {
+    const data = await fetchJSON<Record<string, unknown>>(
+      buildPayloadUrl("/api/globals/footer"),
+      { next: { tags: ["footer"] } },
+    );
+    return {
+      logo: (data.logo as GlobalFooter["logo"]) ?? null,
+      navItems: (data.navItems as GlobalFooter["navItems"]) ?? [],
+      copyrightText:
+        (data.copyrightText as GlobalFooter["copyrightText"]) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export const fetchFooter = cache(fetchFooterPayload);

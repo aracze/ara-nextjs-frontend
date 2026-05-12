@@ -156,3 +156,14 @@ export enum PageCategory {
   Ubytovani = "Ubytování",
   Clanky = "Články",
 }
+
+export interface FooterNavItem {
+  label: string;
+  href: string;
+}
+
+export interface GlobalFooter {
+  logo?: ImageLink | null;
+  navItems: FooterNavItem[];
+  copyrightText: RichTextRoot | null;
+}

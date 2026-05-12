@@ -128,7 +128,9 @@ export function richTextToHtml(
         linkType === "internal" && rawUrl && !rawUrl.startsWith("/")
           ? `/${rawUrl}`
           : rawUrl;
-      const url = escapeHtml(String(normalizedUrl));
+      const url = isSafeUrl(String(normalizedUrl))
+        ? escapeHtml(String(normalizedUrl))
+        : "#";
       const nofollow = Boolean(linkFields?.nofollow);
       const relTokens: string[] = [];
 
@@ -258,6 +260,8 @@ export function richTextToHtml(
         items.forEach((item: any) => {
           const t = sanitizeNiceToKnowType(item.type);
           let headerHtml = "";
+          let timeData: ReturnType<typeof getTimeDataForTimezone> | null = null;
+
           if (t === "language") {
             headerHtml = `<div class="nice-to-know-item__content__header"><div class="language-bubble">${escapeHtml(item.headerText || "")}${item.headerSubtext ? `<br/><span>${escapeHtml(item.headerSubtext)}</span>` : ""}</div></div>`;
           } else if (t === "electricity") {
@@ -281,24 +285,33 @@ export function richTextToHtml(
           } else if (t === "weather") {
             headerHtml = `<div class="nice-to-know-item__content__header"><img src="/assets/information/weather-gray.svg" width="60" height="60" alt="Počasí" /></div>`;
           } else if (t === "time") {
-            const tz = item.timezone || "Europe/Prague";
-            const timeData = getTimeDataForTimezone(String(tz));
-            headerHtml = `<div class="nice-to-know-item__content__header nice-to-know__item--time-header" data-timezone="${escapeHtml(tz)}">
+            const tz = String(item.timezone || "Europe/Prague");
+            timeData = getTimeDataForTimezone(tz);
+            headerHtml = `<div class="nice-to-know-item__content__header nice-to-know__item--time-header" data-timezone="${escapeHtml(
+              tz,
+            )}">
               <span class="nice-to-know-item__day">${escapeHtml(timeData.day)}</span>
               <span class="nice-to-know-item__time">${escapeHtml(timeData.time)}</span>
             </div>`;
           }
-          const timeData =
-            t === "time"
-              ? getTimeDataForTimezone(String(item.timezone || "Europe/Prague"))
-              : null;
-          html += `<div class="nice-to-know-item nice-to-know__item--${t}"><div class="nice-to-know-item__content">${headerHtml}<div class="nice-to-know-item__body"><span class="nice-to-know-item__title">${escapeHtml(item.title || "")}</span><span class="nice-to-know-item__value-wrap"><span>${escapeHtml(item.value || "")}</span>${t === "time" && timeData ? ` <span class="nice-to-know-item__time-diff">${escapeHtml(timeData.offsetLabel)}</span>` : ""}</span></div></div></div>`;
+
+          html += `<div class="nice-to-know-item nice-to-know__item--${t}"><div class="nice-to-know-item__content">${headerHtml}<div class="nice-to-know-item__body"><span class="nice-to-know-item__title">${escapeHtml(
+            item.title || "",
+          )}</span><span class="nice-to-know-item__value-wrap"><span>${escapeHtml(
+            item.value || "",
+          )}</span>${
+            t === "time" && timeData
+              ? ` <span class="nice-to-know-item__time-diff">${escapeHtml(
+                  timeData.offsetLabel,
+                )}</span>`
+              : ""
+          }</span></div></div></div>`;
         });
         html += `</div></div>`;
         return html;
       }
       if (fields?.blockType === "dailyCostsBlock") {
-        const heading = escapeHtml(String(fields.heading ?? "Denni naklady"));
+        const heading = escapeHtml(String(fields.heading ?? "Denní náklady"));
         const columns = Array.isArray(fields.columns) ? fields.columns : [];
 
         let html = `<section class="pi-budget"><h3 class="pi-budget__heading">${heading}</h3>`;
@@ -325,6 +338,19 @@ export function richTextToHtml(
     default:
       return children;
   }
+}
+
+function isSafeUrl(url: string): boolean {
+  if (!url) return true;
+  const normalized = url.trim();
+  if (
+    normalized.startsWith("/") ||
+    normalized.startsWith("#") ||
+    normalized.startsWith("?")
+  ) {
+    return true;
+  }
+  return /^(https?|mailto|tel):/i.test(normalized);
 }
 
 function escapeHtml(str: string): string {

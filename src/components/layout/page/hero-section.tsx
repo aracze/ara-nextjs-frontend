@@ -38,7 +38,7 @@ export const HeroSection = ({
             className="mb-4 flex items-center gap-2 -translate-y-[24px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
           >
             {breadcrumbs.map((bc, idx) => (
-              <div key={bc.href} className="flex items-center gap-1.5">
+              <div key={idx} className="flex items-center gap-1.5">
                 <Link
                   href={bc.href}
                   className="text-[#3b444f] text-[14px] tracking-wide font-medium transition-colors hover:text-[#287bbb]"

@@ -42,11 +42,12 @@ Does it need...?
 
 ### Fetch Strategy
 
-| Pattern        | Use                              |
-| -------------- | -------------------------------- |
-| **Default**    | Dynamic (no-store) [Next.js 15+] |
-| **Revalidate** | ISR (time-based refresh)         |
-| **No-store**   | Dynamic (every request)          |
+| Pattern         | Use                              |
+| --------------- | -------------------------------- |
+| **Default**     | Dynamic (no-store) [Next.js 15+] |
+| **Force-cache** | Cache (force-cache)              |
+| **Revalidate**  | ISR (time-based refresh)         |
+| **No-store**    | Dynamic (every request)          |
 
 > **Note:** Since Next.js 15, `fetch` requests are no longer cached by default. To opt into caching, pass `{ cache: 'force-cache' }` or `{ next: { revalidate: N } }` for ISR.
 

@@ -20,6 +20,12 @@ const practicalInfoCategories: string[] = [
   PageCategory.Ubytovani,
 ];
 
+// On sub-places, these practical pages remain visible as direct menu items.
+const practicalInfoVisibleOnSubPlace: string[] = [
+  PageCategory.Doprava,
+  PageCategory.Ubytovani,
+];
+
 const legacyMenuOrder = [
   "mista",
   "vstup",
@@ -79,7 +85,8 @@ export const Subnavigation = ({
     if (
       isSubPlace &&
       child.category &&
-      practicalInfoCategories.includes(child.category)
+      practicalInfoCategories.includes(child.category) &&
+      !practicalInfoVisibleOnSubPlace.includes(child.category)
     ) {
       return false;
     }
@@ -89,6 +96,14 @@ export const Subnavigation = ({
   const sortedChildren = [...(visibleChildren || [])]
     .map((child, originalIndex) => ({ child, originalIndex }))
     .sort((a, b) => {
+      const aIsAccommodation = a.child.category === PageCategory.Ubytovani;
+      const bIsAccommodation = b.child.category === PageCategory.Ubytovani;
+
+      // Keep accommodation at the end of the secondary menu.
+      if (aIsAccommodation !== bIsAccommodation) {
+        return aIsAccommodation ? 1 : -1;
+      }
+
       const rankDiff = getLegacyMenuRank(a.child) - getLegacyMenuRank(b.child);
       if (rankDiff !== 0) return rankDiff;
 

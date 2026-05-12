@@ -145,7 +145,6 @@ USER 1001
 **Production-ready compose pattern:**
 
 ```yaml
-version: "3.8"
 services:
   app:
     build:
