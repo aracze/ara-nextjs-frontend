@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Page, ImageLink } from "@/types/payload";
 import Search from "@/components/features/search/search";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 
 export function Header({
   pages,
@@ -66,12 +66,9 @@ export function Header({
                         .replace(/fill="#fff"/g, 'fill="white"')
                         .replace(/fill="#[a-f0-9]{6}"/gi, 'fill="white"');
 
-                      if (mounted && typeof window !== "undefined") {
-                        return DOMPurify.sanitize(processed, {
-                          USE_PROFILES: { svg: true },
-                        });
-                      }
-                      return processed;
+                      return DOMPurify.sanitize(processed, {
+                        USE_PROFILES: { svg: true },
+                      });
                     })(),
                   }}
                 />

@@ -8,7 +8,13 @@ interface TimeData {
   offset: string;
 }
 
-export function LocalTime({ timezone }: { timezone?: string | null }) {
+export function LocalTime({
+  timezone,
+  className = "",
+}: {
+  timezone?: string | null;
+  className?: string;
+}) {
   const [data, setData] = useState<TimeData | null>(null);
 
   useEffect(() => {
@@ -58,7 +64,9 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
   }
 
   return (
-    <div className="flex items-baseline justify-center gap-2 py-1">
+    <div
+      className={`flex items-baseline justify-center gap-2 py-1 ${className}`}
+    >
       <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#67747c]">
         {data.day}
       </span>

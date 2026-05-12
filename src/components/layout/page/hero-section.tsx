@@ -37,24 +37,38 @@ export const HeroSection = ({
             aria-label="Breadcrumb navigation"
             className="mb-4 flex items-center gap-2 -translate-y-[24px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
           >
-            {breadcrumbs.map((bc, idx) => (
-              <div key={idx} className="flex items-center gap-1.5">
-                <Link
-                  href={bc.href}
-                  className="text-[#3b444f] text-[14px] tracking-wide font-medium transition-colors hover:text-[#287bbb]"
-                >
-                  {bc.title}
-                </Link>
-                {idx < breadcrumbs.length - 1 && (
-                  <span
-                    className="text-gray-300 text-[12px] px-0.5"
-                    aria-hidden="true"
-                  >
-                    /
-                  </span>
-                )}
-              </div>
-            ))}
+            <ol className="flex items-center gap-1.5 list-none p-0 m-0">
+              {breadcrumbs.map((bc, idx) => {
+                const isLast = idx === breadcrumbs.length - 1;
+                return (
+                  <li key={idx} className="flex items-center gap-1.5">
+                    {isLast ? (
+                      <span
+                        className="text-[#287bbb] text-[14px] tracking-wide font-bold"
+                        aria-current="page"
+                      >
+                        {bc.title}
+                      </span>
+                    ) : (
+                      <Link
+                        href={bc.href}
+                        className="text-[#3b444f] text-[14px] tracking-wide font-medium transition-colors hover:text-[#287bbb]"
+                      >
+                        {bc.title}
+                      </Link>
+                    )}
+                    {!isLast && (
+                      <span
+                        className="text-gray-300 text-[12px] px-0.5"
+                        aria-hidden="true"
+                      >
+                        /
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
           </nav>
         )}
         <h1 className="relative -translate-y-[24px] text-[36px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)] after:absolute after:bottom-[-5px] after:left-1/2 after:w-[30px] after:-ml-[15px] after:border-b after:border-[#D7E1EF] after:content-['']">

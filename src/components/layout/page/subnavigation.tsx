@@ -34,7 +34,7 @@ const legacyMenuOrder = [
   "doprava",
   "mena",
   "zdravi",
-  "kultura",
+  "jazyk",
   "jidlo",
   "clanky",
   "prakticke",

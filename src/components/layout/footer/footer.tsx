@@ -4,8 +4,14 @@ import { fetchFooter } from "@/lib/payload";
 import { ImageLink } from "@/types/payload";
 import { richTextToHtml } from "@/lib/utils";
 
+import DOMPurify from "isomorphic-dompurify";
+
 function FooterLogo({ logo }: { logo: ImageLink }) {
   if (logo.svgCode) {
+    const sanitizedSvg = DOMPurify.sanitize(logo.svgCode, {
+      USE_PROFILES: { svg: true },
+    });
+
     return (
       <Link
         href={logo.link?.href ?? "/"}
@@ -14,7 +20,7 @@ function FooterLogo({ logo }: { logo: ImageLink }) {
       >
         <div
           className="h-[23px] w-auto flex items-center [&_svg]:h-[23px] [&_svg]:w-auto"
-          dangerouslySetInnerHTML={{ __html: logo.svgCode }}
+          dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
         />
       </Link>
     );

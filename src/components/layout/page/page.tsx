@@ -66,6 +66,8 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           timezone={page.detail?.timezone || safeRootPage?.detail?.timezone}
           currencyCode={effectiveCurrencyCode}
           exchangeRate={exchangeData?.rate}
+          pageTitle={page.title}
+          genitive={page.detail?.genitive}
         />
 
         {/* 3. PLACES TO VISIT SECTION */}
