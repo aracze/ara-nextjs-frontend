@@ -18,7 +18,6 @@ const menuOwnerCategories: PageCategory[] = [
 export const Page = async ({ page }: { page: PayloadPage }) => {
   const rootPage = await fetchRootPage(page);
   const safeRootPage = rootPage ?? page;
-  const rootChildren = safeRootPage.children?.docs ?? [];
   const pageChildren = page.children?.docs ?? [];
 
   const imageUrl = getHeroImage(page, safeRootPage);
@@ -28,6 +27,11 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
   // e.g. on Dubrovník's Počasí → menuContext = Dubrovník's children
   // e.g. on Chorvatsko's Počasí → menuContext = Chorvatsko's children
   const menuContext = await fetchMenuContext(page, safeRootPage);
+  const practicalInfoSourceChildren = await fetchPracticalInfoSourceChildren(
+    page,
+    safeRootPage,
+    menuContext.isSubPlace,
+  );
 
   const effectiveCurrencyCode =
     page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
@@ -52,7 +56,7 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           contextTitle={menuContext.contextTitle}
           contextFullSlug={menuContext.contextFullSlug}
           pageChildren={menuContext.menuChildren}
-          rootChildren={rootChildren}
+          rootChildren={practicalInfoSourceChildren}
           currentPageFullSlug={page.fullSlug}
           currentPageCategory={page.category}
           isSubPlace={menuContext.isSubPlace}
@@ -68,6 +72,8 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           exchangeRate={exchangeData?.rate}
           pageTitle={page.title}
           genitive={page.detail?.genitive}
+          createdBy={page.createdBy}
+          createdByPublic={page.createdByPublic}
         />
 
         {/* 3. PLACES TO VISIT SECTION */}
@@ -101,35 +107,70 @@ function getHeroImage(page: PayloadPage, rootPage: PayloadPage) {
     : null;
 }
 
-async function fetchRootPage(page: PayloadPage): Promise<PayloadPage> {
-  const normalizedSlug = page.fullSlug.replace(/^\/+|\/+$/g, "");
-  const parts = normalizedSlug.split("/");
+/**
+ * Shared helper to fetch all ancestor pages for a given slug.
+ * If an intermediate parent is missing in the CMS, it returns a placeholder.
+ */
+async function fetchAncestorChain(
+  fullSlug: string,
+): Promise<
+  (
+    | PayloadPage
+    | { title: string; fullSlug: string; category?: never; isPlaceholder: true }
+  )[]
+> {
+  const normalizedSlug = fullSlug.replace(/^\/+|\/+$/g, "");
+  if (!normalizedSlug) return [];
 
-  // We want to find the highest level page in the hierarchy that belongs to rootPageCategories
-  // This ensures that for /evropa/chorvatsko/dubrovnik, we find "Chorvatsko" as the root.
+  const parts = normalizedSlug.split("/");
+  const chain: (
+    | PayloadPage
+    | { title: string; fullSlug: string; category?: never; isPlaceholder: true }
+  )[] = [];
+
+  // We walk through all segments except the last one (which is the page itself)
   for (let i = 1; i < parts.length; i++) {
     const parentSlug = parts.slice(0, i).join("/");
     const { data } = await fetchPageByFullSlug(parentSlug);
     const parentPage = data?.pages?.[0];
 
-    if (parentPage && rootPageCategories.includes(parentPage.category)) {
-      return parentPage;
+    if (parentPage) {
+      chain.push(parentPage);
+    } else {
+      const segment = parts[i - 1];
+      const title =
+        segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+      chain.push({
+        title,
+        fullSlug: `/${parentSlug}`,
+        isPlaceholder: true,
+      });
+      console.warn(`[Page] Missing parent page in CMS for slug: ${parentSlug}`);
+    }
+  }
+
+  return chain;
+}
+
+async function fetchRootPage(page: PayloadPage): Promise<PayloadPage> {
+  if (rootPageCategories.includes(page.category)) {
+    return page;
+  }
+
+  const ancestors = await fetchAncestorChain(page.fullSlug);
+  // Find the first valid root page in the chain
+  for (const ancestor of ancestors) {
+    if (
+      !("isPlaceholder" in ancestor) &&
+      rootPageCategories.includes(ancestor.category)
+    ) {
+      return ancestor;
     }
   }
 
   return page;
 }
 
-/**
- * Find the nearest ancestor Place (or self) that "owns" the menu.
- * Returns its children for the sub-navigation and whether it's a sub-place (not the root).
- *
- * Examples:
- *   /chorvatsko          → context=Chorvatsko, isSubPlace=false
- *   /chorvatsko/pocasi   → context=Chorvatsko, isSubPlace=false
- *   /chorvatsko/dubrovnik → context=Dubrovník, isSubPlace=true
- *   /chorvatsko/dubrovnik/pocasi → context=Dubrovník, isSubPlace=true
- */
 async function fetchMenuContext(
   page: PayloadPage,
   rootPage: PayloadPage,
@@ -139,40 +180,40 @@ async function fetchMenuContext(
   menuChildren: PayloadPage["children"]["docs"];
   isSubPlace: boolean;
 }> {
-  // If the current page IS a menu-owning Place (Místa, Místo k navštívení), it owns its own menu.
-  // Turistický cíl is excluded – it delegates to its parent Place.
   if (menuOwnerCategories.includes(page.category)) {
-    const isRoot = page.fullSlug === rootPage.fullSlug;
+    const ancestors = await fetchAncestorChain(page.fullSlug);
+    const hasParentMenuOwner = ancestors.some(
+      (ancestor) =>
+        !("isPlaceholder" in ancestor) &&
+        menuOwnerCategories.includes(ancestor.category),
+    );
+
     return {
       contextTitle: page.title,
       contextFullSlug: page.fullSlug,
       menuChildren: page.children?.docs ?? [],
-      isSubPlace: !isRoot,
+      isSubPlace: hasParentMenuOwner,
     };
   }
 
-  // Otherwise, walk up the hierarchy from deepest to shallowest
-  // to find the nearest Place ancestor.
-  const normalizedSlug = page.fullSlug.replace(/^\/+|\/+$/g, "");
-  const parts = normalizedSlug.split("/");
-
-  for (let i = parts.length - 1; i >= 1; i--) {
-    const parentSlug = parts.slice(0, i).join("/");
-    const { data } = await fetchPageByFullSlug(parentSlug);
-    const parentPage = data?.pages?.[0];
-
-    if (parentPage && menuOwnerCategories.includes(parentPage.category)) {
-      const isRoot = parentPage.fullSlug === rootPage.fullSlug;
+  const ancestors = await fetchAncestorChain(page.fullSlug);
+  // Walk backwards through resolved ancestors to find the nearest Place
+  for (let i = ancestors.length - 1; i >= 0; i--) {
+    const ancestor = ancestors[i];
+    if (
+      !("isPlaceholder" in ancestor) &&
+      menuOwnerCategories.includes(ancestor.category)
+    ) {
+      const isRoot = ancestor.fullSlug === rootPage.fullSlug;
       return {
-        contextTitle: parentPage.title,
-        contextFullSlug: parentPage.fullSlug,
-        menuChildren: parentPage.children?.docs ?? [],
+        contextTitle: ancestor.title,
+        contextFullSlug: ancestor.fullSlug,
+        menuChildren: ancestor.children?.docs ?? [],
         isSubPlace: !isRoot,
       };
     }
   }
 
-  // Fallback: use root
   return {
     contextTitle: rootPage.title,
     contextFullSlug: rootPage.fullSlug,
@@ -181,26 +222,43 @@ async function fetchMenuContext(
   };
 }
 
-async function getBreadcrumbs(
+async function fetchPracticalInfoSourceChildren(
   page: PayloadPage,
-): Promise<{ title: string; href: string }[]> {
-  const breadcrumbs: { title: string; href: string }[] = [];
-  const normalizedSlug = page.fullSlug.replace(/^\/+|\/+$/g, "");
-  const parts = normalizedSlug.split("/");
+  rootPage: PayloadPage,
+  isSubPlace: boolean,
+): Promise<PayloadPage["children"]["docs"]> {
+  const rootChildren = rootPage.children?.docs ?? [];
 
-  // We want to fetch all parents, so we iterate through parts except the last one (current page)
-  for (let i = 1; i < parts.length; i++) {
-    const parentSlug = parts.slice(0, i).join("/");
-    const { data } = await fetchPageByFullSlug(parentSlug);
-    const parentPage = data?.pages?.[0];
+  if (!isSubPlace) {
+    return rootChildren;
+  }
 
-    if (parentPage) {
-      breadcrumbs.push({
-        title: parentPage.title,
-        href: parentPage.fullSlug,
-      });
+  const ancestors = await fetchAncestorChain(page.fullSlug);
+
+  // Prefer the nearest ancestor that has a Praktické informace child.
+  for (let i = ancestors.length - 1; i >= 0; i--) {
+    const ancestor = ancestors[i];
+    if ("isPlaceholder" in ancestor) continue;
+
+    const children = ancestor.children?.docs ?? [];
+    const hasPracticalInfo = children.some(
+      (child) => child.category === PageCategory.Prakticke_informace,
+    );
+
+    if (hasPracticalInfo) {
+      return children;
     }
   }
 
-  return breadcrumbs;
+  return rootChildren;
+}
+
+async function getBreadcrumbs(
+  page: PayloadPage,
+): Promise<{ title: string; href: string }[]> {
+  const ancestors = await fetchAncestorChain(page.fullSlug);
+  return ancestors.map((a) => ({
+    title: a.title,
+    href: a.fullSlug,
+  }));
 }

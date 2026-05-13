@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import DOMPurify from "isomorphic-dompurify";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,15 +35,40 @@ export function richTextToHtml(
   value: unknown,
   context: RichTextRenderContext = {},
 ): string {
+  const rawHtml = richTextToHtmlInternal(value, context);
+  return DOMPurify.sanitize(rawHtml, {
+    ADD_TAGS: ["iframe", "section", "svg", "path", "button"],
+    ADD_ATTR: [
+      "allowfullscreen",
+      "frameborder",
+      "target",
+      "rel",
+      "loading",
+      "referrerpolicy",
+      "srcset",
+      "sizes",
+      "aria-label",
+      "aria-hidden",
+      "focusable",
+      "viewBox",
+      "d",
+    ],
+  });
+}
+
+function richTextToHtmlInternal(
+  value: unknown,
+  context: RichTextRenderContext = {},
+): string {
   if (typeof value === "string") return value;
   if (!value || typeof value !== "object") return "";
 
   const node = value as Record<string, unknown>;
-  if ("root" in node) return richTextToHtml(node.root, context);
+  if ("root" in node) return richTextToHtmlInternal(node.root, context);
 
   const children = Array.isArray(node.children)
     ? (node.children as Record<string, unknown>[])
-        .map((child) => richTextToHtml(child, context))
+        .map((child) => richTextToHtmlInternal(child, context))
         .join("")
     : "";
 
@@ -440,11 +466,15 @@ function getTimeDataForTimezone(timeZone: string): {
 
     const destinationOffset = getOffsetHours(timeZone, now);
     const pragueOffset = getOffsetHours("Europe/Prague", now);
-    const diffHours = destinationOffset - pragueOffset;
-    const value = Number.isInteger(diffHours)
-      ? `${diffHours}`
-      : diffHours.toFixed(1);
-    const offsetLabel = `${diffHours >= 0 ? "+" : ""}${value}h`;
+
+    let offsetLabel = "0h";
+    if (destinationOffset !== null && pragueOffset !== null) {
+      const diffHours = destinationOffset - pragueOffset;
+      const value = Number.isInteger(diffHours)
+        ? `${diffHours}`
+        : diffHours.toFixed(1);
+      offsetLabel = `${diffHours >= 0 ? "+" : ""}${value}h`;
+    }
 
     return { day, time, offsetLabel };
   } catch {
@@ -452,23 +482,30 @@ function getTimeDataForTimezone(timeZone: string): {
   }
 }
 
-function getOffsetHours(timeZone: string, date: Date): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    timeZoneName: "shortOffset",
-    hour: "2-digit",
-  }).formatToParts(date);
+function getOffsetHours(timeZone: string, date: Date): number | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "shortOffset",
+      hour: "2-digit",
+    }).formatToParts(date);
 
-  const offsetName = parts.find((part) => part.type === "timeZoneName")?.value;
-  if (!offsetName) return 0;
+    const offsetName = parts.find(
+      (part) => part.type === "timeZoneName",
+    )?.value;
+    if (!offsetName) return null;
 
-  const match = offsetName.match(/^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/);
-  if (!match) return 0;
+    const match = offsetName.match(/^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/);
+    if (!match) return null;
 
-  const sign = match[1] === "-" ? -1 : 1;
-  const hours = Number(match[2] ?? 0);
-  const minutes = Number(match[3] ?? 0);
-  return sign * (hours + minutes / 60);
+    const sign = match[1] === "-" ? -1 : 1;
+    const hours = Number(match[2] ?? 0);
+    const minutes = Number(match[3] ?? 0);
+
+    return sign * (hours + minutes / 60);
+  } catch {
+    return null;
+  }
 }
 
 export function richTextToPlainText(value: unknown): string {

@@ -42,21 +42,16 @@ export const HeroSection = ({
                 const isLast = idx === breadcrumbs.length - 1;
                 return (
                   <li key={idx} className="flex items-center gap-1.5">
-                    {isLast ? (
-                      <span
-                        className="text-[#287bbb] text-[14px] tracking-wide font-bold"
-                        aria-current="page"
-                      >
-                        {bc.title}
-                      </span>
-                    ) : (
-                      <Link
-                        href={bc.href}
-                        className="text-[#3b444f] text-[14px] tracking-wide font-medium transition-colors hover:text-[#287bbb]"
-                      >
-                        {bc.title}
-                      </Link>
-                    )}
+                    <Link
+                      href={bc.href}
+                      className={`text-[14px] tracking-wide transition-colors duration-200 hover:text-[#1a3f6c] ${
+                        isLast
+                          ? "text-gray-700 font-bold"
+                          : "text-gray-500 font-medium"
+                      }`}
+                    >
+                      {bc.title}
+                    </Link>
                     {!isLast && (
                       <span
                         className="text-gray-300 text-[12px] px-0.5"
@@ -71,7 +66,7 @@ export const HeroSection = ({
             </ol>
           </nav>
         )}
-        <h1 className="relative -translate-y-[24px] text-[36px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)] after:absolute after:bottom-[-5px] after:left-1/2 after:w-[30px] after:-ml-[15px] after:border-b after:border-[#D7E1EF] after:content-['']">
+        <h1 className="relative -translate-y-[18px] text-[36px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)] after:absolute after:bottom-[-5px] after:left-1/2 after:w-[30px] after:-ml-[15px] after:border-b after:border-[#D7E1EF] after:content-['']">
           {title}
         </h1>
       </div>

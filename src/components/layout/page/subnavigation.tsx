@@ -6,9 +6,7 @@ const hiddenCategories: string[] = [
   PageCategory.Turisticky_cil,
 ];
 
-// Categories that represent "practical information" pages (country-level content).
-// On sub-places (like Dubrovník), these will be collapsed into a single
-// "Praktické informace" link pointing to the root's practical info page.
+// Categories considered as practical info for active-state highlighting.
 const practicalInfoCategories: string[] = [
   PageCategory.Vstupni_podminky,
   PageCategory.Cesta,
@@ -20,39 +18,25 @@ const practicalInfoCategories: string[] = [
   PageCategory.Ubytovani,
 ];
 
-// On sub-places, these practical pages remain visible as direct menu items.
-const practicalInfoVisibleOnSubPlace: string[] = [
+const legacyMenuOrder: PageCategory[] = [
+  PageCategory.Mista,
+  PageCategory.Vstupni_podminky,
+  PageCategory.Cesta,
+  PageCategory.Pocasi,
   PageCategory.Doprava,
+  PageCategory.Mena_a_ceny,
+  PageCategory.Zdravi_a_bezpeci,
+  PageCategory.Jazyk_a_kultura,
+  PageCategory.Jidlo_a_pit,
+  PageCategory.Clanky,
+  PageCategory.Prakticke_informace,
   PageCategory.Ubytovani,
 ];
 
-const legacyMenuOrder = [
-  "mista",
-  "vstup",
-  "cesta",
-  "pocasi",
-  "doprava",
-  "mena",
-  "zdravi",
-  "jazyk",
-  "jidlo",
-  "clanky",
-  "prakticke",
-];
-
-const normalizeMenuLabel = (value: string) =>
-  value
-    .trim()
-    .toLocaleLowerCase("cs")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
 const getLegacyMenuRank = (pageChild: PageChild): number => {
-  const normalizedTitle = normalizeMenuLabel(pageChild.title || "");
-  const index = legacyMenuOrder.findIndex((token) =>
-    normalizedTitle.startsWith(token),
-  );
+  if (!pageChild.category) return Number.MAX_SAFE_INTEGER;
 
+  const index = legacyMenuOrder.indexOf(pageChild.category as PageCategory);
   return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 };
 
@@ -70,7 +54,7 @@ export const Subnavigation = ({
   pageChildren: PageChild[];
   rootChildren: PageChild[];
   currentPageFullSlug: string;
-  currentPageCategory?: string;
+  currentPageCategory?: PageCategory;
   isSubPlace: boolean;
 }) => {
   const isContextActive = currentPageFullSlug === contextFullSlug;
@@ -80,14 +64,9 @@ export const Subnavigation = ({
     if (child.category && hiddenCategories.includes(child.category)) {
       return false;
     }
-    // On sub-places, exclude individual practical info pages as they are collapsed
-    // into a single "Praktické informace" link pointing to the root.
-    if (
-      isSubPlace &&
-      child.category &&
-      practicalInfoCategories.includes(child.category) &&
-      !practicalInfoVisibleOnSubPlace.includes(child.category)
-    ) {
+    // If the context has its own "Praktické informace" child page,
+    // we keep it out of the secondary menu.
+    if (child.category === PageCategory.Prakticke_informace) {
       return false;
     }
     return true;
@@ -96,14 +75,6 @@ export const Subnavigation = ({
   const sortedChildren = [...(visibleChildren || [])]
     .map((child, originalIndex) => ({ child, originalIndex }))
     .sort((a, b) => {
-      const aIsAccommodation = a.child.category === PageCategory.Ubytovani;
-      const bIsAccommodation = b.child.category === PageCategory.Ubytovani;
-
-      // Keep accommodation at the end of the secondary menu.
-      if (aIsAccommodation !== bIsAccommodation) {
-        return aIsAccommodation ? 1 : -1;
-      }
-
       const rankDiff = getLegacyMenuRank(a.child) - getLegacyMenuRank(b.child);
       if (rankDiff !== 0) return rankDiff;
 
@@ -111,13 +82,20 @@ export const Subnavigation = ({
     })
     .map(({ child }) => child);
 
+  // If the current menu context already has its own "Praktické informace"
+  // child page, we do not need to inject the ancestor/root fallback link.
+  const hasOwnPracticalInfoChild = (pageChildren || []).some(
+    (child) => child.category === PageCategory.Prakticke_informace,
+  );
+
   // On sub-places (like Dubrovník), find the root's "Praktické informace" page
   // to show as a single collapsed link instead of individual pages.
-  const practicalInfoPage = isSubPlace
-    ? rootChildren?.find(
-        (child) => child.category === PageCategory.Prakticke_informace,
-      )
-    : null;
+  const practicalInfoPage =
+    isSubPlace && !hasOwnPracticalInfoChild
+      ? rootChildren?.find(
+          (child) => child.category === PageCategory.Prakticke_informace,
+        )
+      : null;
 
   // Determine if the current page falls under "practical info" (for highlighting)
   const isCurrentPagePracticalInfo =
@@ -136,7 +114,7 @@ export const Subnavigation = ({
             className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
               isContextActive
                 ? "text-[#287bbb] border-[#287bbb] font-bold"
-                : "text-[#215491] border-transparent hover:text-[#287bbb]"
+                : "text-gray-800 border-transparent hover:text-[#287bbb]"
             }`}
           >
             {contextTitle}

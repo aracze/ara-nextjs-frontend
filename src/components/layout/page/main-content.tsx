@@ -1,11 +1,9 @@
 import React from "react";
 import { PageCategory, PageChild, RichTextRoot } from "@/types/payload";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import rehypeSlug from "rehype-slug";
 import { LocalTime } from "@/components/features/local-time";
 import { richTextToHtml } from "@/lib/utils";
+import { CollapsiblePageTextWithContributor } from "./collapsible-page-text";
 
 interface TocItem {
   id: string;
@@ -38,6 +36,8 @@ export const MainContent = ({
   exchangeRate,
   pageTitle,
   genitive,
+  createdBy,
+  createdByPublic,
 }: {
   text: string | RichTextRoot;
   pageChildren: PageChild[];
@@ -47,6 +47,21 @@ export const MainContent = ({
   exchangeRate?: number | null;
   pageTitle?: string | null;
   genitive?: string | null;
+  createdBy?:
+    | {
+        username?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        avatar?: { url?: string | null } | null;
+      }
+    | number
+    | null;
+  createdByPublic?: {
+    username?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatar?: { url?: string | null } | null;
+  } | null;
 }) => {
   const placeCategories: PageCategory[] = [
     PageCategory.Misto_k_navstiveni,
@@ -79,20 +94,41 @@ export const MainContent = ({
 
   const cleanGenitive = genitive?.replace(/^do\s+/i, "");
   const displayName = cleanGenitive || pageTitle;
+  const author =
+    (createdBy && typeof createdBy === "object" ? createdBy : null) ||
+    createdByPublic ||
+    null;
+  const authorName =
+    author?.username ||
+    [author?.firstName, author?.lastName].filter(Boolean).join(" ") ||
+    null;
+  const rawAvatarUrl = author?.avatar?.url;
+  const avatarUrl = rawAvatarUrl
+    ? rawAvatarUrl.startsWith("/")
+      ? new URL(rawAvatarUrl, process.env.PAYLOAD_BASE_API_URL).toString()
+      : rawAvatarUrl
+    : "/assets/avatar-white.jpg";
+  const profileHref = author?.username ? `/profil/${author.username}` : null;
+  const contributor = authorName
+    ? {
+        name: authorName,
+        profileHref,
+        avatarUrl,
+      }
+    : null;
 
   return (
-    <main className="max-w-7xl mx-auto px-4 md:px-18 py-12 md:py-20 flex flex-col md:flex-row gap-16 lg:gap-24">
+    <main className="max-w-7xl mx-auto px-5 py-12 md:py-20 flex flex-col lg:flex-row gap-16 lg:gap-24">
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
-          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
-            {textHtml}
-          </ReactMarkdown>
-        </div>
+        <CollapsiblePageTextWithContributor
+          textHtml={textHtml}
+          contributor={showAktualniInfo ? contributor : null}
+        />
       </div>
 
       {/* Sidebar / Info Column */}
-      <aside className="w-full md:w-80 flex flex-col gap-12 relative">
+      <aside className="w-full lg:w-80 flex flex-col gap-12 relative">
         {/* Time, Exchange & Practical Info — for place-type pages */}
         {showAktualniInfo &&
           (timezone || exchangeRate || practicalInfoChild) && (
@@ -120,21 +156,30 @@ export const MainContent = ({
                       </>
                     )}
                     {exchangeRate && currencyCode && (
-                      <Link
-                        href={
-                          practicalInfoChild
-                            ? `${practicalInfoChild.fullSlug}#mena-a-ceny`
-                            : "#"
-                        }
-                        className="block text-[26px] tracking-[0.01rem] text-[#333] mt-4 hover:no-underline"
-                      >
-                        1 {currencyCode} ={" "}
-                        {exchangeRate.toLocaleString("cs-CZ", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        CZK
-                      </Link>
+                      <div className="block text-[26px] tracking-[0.01rem] text-[#333] mt-4">
+                        {practicalInfoChild ? (
+                          <Link
+                            href={`${practicalInfoChild.fullSlug}#mena-a-ceny`}
+                            className="hover:no-underline"
+                          >
+                            1 {currencyCode} ={" "}
+                            {exchangeRate.toLocaleString("cs-CZ", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            CZK
+                          </Link>
+                        ) : (
+                          <span>
+                            1 {currencyCode} ={" "}
+                            {exchangeRate.toLocaleString("cs-CZ", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            CZK
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
@@ -184,28 +229,6 @@ export const MainContent = ({
               ))}
             </ul>
           </nav>
-        )}
-
-        {/* Sub-pages list */}
-        {pageChildren.length > 0 && (
-          <div className="bg-gray-50 rounded-2xl p-8">
-            <h3 className="text-gray-900 font-bold mb-6 text-xl">Podstránky</h3>
-            <ul className="space-y-4">
-              {pageChildren.map((child: PageChild) => (
-                <li key={child.id}>
-                  <Link
-                    href={child.fullSlug}
-                    className="flex items-center group"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-[#215491]/30 mr-3 group-hover:bg-[#215491] transition-colors" />
-                    <span className="text-gray-700 font-semibold group-hover:text-[#215491] transition-colors font-heading">
-                      {child.title}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
       </aside>
     </main>

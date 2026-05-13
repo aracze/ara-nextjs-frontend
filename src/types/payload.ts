@@ -89,6 +89,22 @@ export interface Page {
     locative?: string | null;
     genitive?: string | null;
   } | null;
+  createdBy?:
+    | {
+        username?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        avatar?: StrapiMedia | null;
+      }
+    | number
+    | null;
+  createdByPublic?: {
+    id: number;
+    username?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatar?: StrapiMedia | null;
+  } | null;
 }
 
 export interface PagesResponse {

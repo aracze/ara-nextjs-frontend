@@ -14,13 +14,8 @@ export function Header({
   pages: Page[];
   headerLogo?: ImageLink | null;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleMouseEnter = (pageId: string) => {
     if (closeTimeoutRef.current) {
