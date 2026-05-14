@@ -13,7 +13,10 @@ export const StaticHeroImage = ({
       style={{
         backgroundImage: imageUrl ? `url(${imageUrl})` : "none",
         backgroundPosition: styleCss
-          ? styleCss.replace(/background-position:\s*/i, "").replace(/;/g, "").trim()
+          ? styleCss
+              .replace(/background-position:\s*/i, "")
+              .replace(/;/g, "")
+              .trim()
           : "50% 35%",
       }}
     />

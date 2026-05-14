@@ -1,14 +1,13 @@
 export const StaticHeroWave = () => {
   return (
-    <div className="absolute bottom-[-1px] left-0 right-0 z-[101] flex leading-none translate-y-[1px]">
+    <div className="absolute bottom-[-1px] left-0 right-0 z-[101] flex leading-none">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1400 71.8"
-        className="w-full h-12 md:h-18 lg:h-[72px]"
-        preserveAspectRatio="none"
+        className="w-full h-auto"
       >
         <path
-          fill="#215491"
+          fill="#285194"
           d="M1400,0v38.6c-0.2,0.1-0.4,0.1-0.5,0.2c-94.8,30.2-281.1,46.1-565.8,18.9C1188.5,68.3,1332.9,32.8,1400,0z"
         ></path>
         <path

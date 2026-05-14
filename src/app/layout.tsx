@@ -10,6 +10,7 @@ import { Open_Sans, Poppins } from "next/font/google";
 import "./globals.css";
 import { isProduction } from "@/lib/utils";
 import { Header } from "@/components/layout/header/header";
+import { Footer } from "@/components/layout/footer/footer";
 import { WebVitals } from "@/components/features/web-vitals";
 import { fetchRootPages } from "@/lib/payload";
 
@@ -56,6 +57,7 @@ export default async function RootLayout({
             <Header pages={data.pages} headerLogo={data.global?.header?.logo} />
           )}
           <div className="grow w-full">{children}</div>
+          <Footer />
         </div>
       </body>
     </html>

@@ -25,7 +25,8 @@ export const Article: React.FC<ArticleProps> = async ({
   const articleText = richTextToHtml(article.text);
 
   // Resolve the context page (the page the user came from based on URL)
-  const contextPageSlug = contextSlug || article.mainPage?.fullSlug?.replace(/^\//, "") || null;
+  const contextPageSlug =
+    contextSlug || article.mainPage?.fullSlug?.replace(/^\//, "") || null;
   const { contextPage, rootPage } = await resolveContextPages(contextPageSlug);
 
   const backHref = contextPage ? contextPage.fullSlug : "/";
@@ -143,7 +144,12 @@ async function resolveContextPages(contextPageSlug: string | null) {
 }
 
 function resolveHeroImage(
-  page: { featuredImage?: { image?: { url?: string } | null; featureImageStyleCss?: string | null } | null } | null,
+  page: {
+    featuredImage?: {
+      image?: { url?: string } | null;
+      featureImageStyleCss?: string | null;
+    } | null;
+  } | null,
   article: ArticleType,
 ) {
   // Prefer article's own featured image, fall back to context page

@@ -8,30 +8,49 @@ interface TimeData {
   offset: string;
 }
 
-export function LocalTime({ timezone }: { timezone?: string | null }) {
+export function LocalTime({
+  timezone,
+  className = "",
+}: {
+  timezone?: string | null;
+  className?: string;
+}) {
   const [data, setData] = useState<TimeData | null>(null);
 
   useEffect(() => {
     const update = () => {
       try {
         const now = new Date();
-        const opts: Intl.DateTimeFormatOptions = timezone ? { timeZone: timezone } : {};
+        const opts: Intl.DateTimeFormatOptions = timezone
+          ? { timeZone: timezone }
+          : {};
 
-        const day = now.toLocaleDateString("cs-CZ", { weekday: "long", ...opts }).toUpperCase();
-        const time = now.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", ...opts });
+        const day = now
+          .toLocaleDateString("cs-CZ", { weekday: "long", ...opts })
+          .toUpperCase();
+        const time = now.toLocaleTimeString("cs-CZ", {
+          hour: "2-digit",
+          minute: "2-digit",
+          ...opts,
+        });
 
-        // Calculate offset from local time
+        // Calculate offset from Prague time
         let offset = "";
         if (timezone) {
-          const localMinutes = now.getHours() * 60 + now.getMinutes();
-          const remoteStr = now.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: timezone });
-          const [rh, rm] = remoteStr.split(":").map(Number);
-          const remoteMinutes = rh * 60 + rm;
-          const diffHours = Math.round((remoteMinutes - localMinutes) / 60);
-          if (diffHours !== 0) {
-            offset = `${diffHours > 0 ? "+" : ""}${diffHours}H`;
-          } else {
-            offset = "0H";
+          const destinationOffset = getOffsetHours(timezone, now);
+          const pragueOffset = getOffsetHours("Europe/Prague", now);
+
+          if (destinationOffset !== null && pragueOffset !== null) {
+            const diffHours = destinationOffset - pragueOffset;
+            const totalMinutes = Math.round(diffHours * 60);
+            const sign = totalMinutes >= 0 ? "+" : "-";
+            const absMinutes = Math.abs(totalMinutes);
+            const hours = Math.floor(absMinutes / 60);
+            const minutes = absMinutes % 60;
+            const value = `${hours}${
+              minutes ? `:${minutes.toString().padStart(2, "0")}` : ""
+            }`;
+            offset = `${sign}${value}H`;
           }
         }
 
@@ -41,16 +60,32 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
       }
     };
     update();
-    const id = setInterval(update, 60_000);
-    return () => clearInterval(id);
+
+    const delay = 60_000 - (Date.now() % 60_000);
+    let intervalId: NodeJS.Timeout;
+    const timeoutId = setTimeout(() => {
+      update();
+      intervalId = setInterval(update, 60_000);
+    }, delay);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [timezone]);
 
   if (!data) {
-    return <div className="h-[42px]" />;
+    return (
+      <div
+        className={`flex items-baseline justify-center gap-2 py-1 h-[42px] ${className}`}
+      />
+    );
   }
 
   return (
-    <div className="flex items-baseline justify-center gap-2 py-1">
+    <div
+      className={`flex items-baseline justify-center gap-2 py-1 ${className}`}
+    >
       <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#67747c]">
         {data.day}
       </span>
@@ -64,4 +99,30 @@ export function LocalTime({ timezone }: { timezone?: string | null }) {
       )}
     </div>
   );
+}
+
+function getOffsetHours(timeZone: string, date: Date): number | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "shortOffset",
+      hour: "2-digit",
+    }).formatToParts(date);
+
+    const offsetName = parts.find(
+      (part) => part.type === "timeZoneName",
+    )?.value;
+    if (!offsetName) return null;
+
+    const match = offsetName.match(/^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/);
+    if (!match) return null;
+
+    const sign = match[1] === "-" ? -1 : 1;
+    const hours = Number(match[2] ?? 0);
+    const minutes = Number(match[3] ?? 0);
+
+    return sign * (hours + minutes / 60);
+  } catch {
+    return null;
+  }
 }

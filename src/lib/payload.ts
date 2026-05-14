@@ -5,18 +5,19 @@ import {
   Article,
   GlobalHeader,
   Homepage,
-} from '@/types/payload';
-import { getPayloadURL, isProduction } from './utils';
-import { cache } from 'react';
+  GlobalFooter,
+} from "@/types/payload";
+import { getPayloadURL, isProduction } from "./utils";
+import { cache } from "react";
 
-const DEFAULT_LIMIT = '200';
+const DEFAULT_LIMIT = "200";
 
 type PayloadDocsResponse<T> = {
   docs: T[];
   totalDocs?: number;
 };
 
-type RawPayloadPage = Omit<Page, 'children' | 'articles'> & {
+type RawPayloadPage = Omit<Page, "children" | "articles"> & {
   children?: {
     docs: PageChild[];
   };
@@ -69,10 +70,10 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
       ...init?.next,
       ...(isProduction() ? {} : { revalidate: 0 }),
     },
-    cache: isProduction() ? init?.cache : 'no-store',
+    cache: isProduction() ? init?.cache : "no-store",
   });
   if (!res.ok) {
-    const body = await res.text().catch(() => '');
+    const body = await res.text().catch(() => "");
     throw new Error(`Request failed: ${res.status} ${res.statusText} ${body}`);
   }
   return (await res.json()) as T;
@@ -91,11 +92,11 @@ function buildPayloadUrl(path: string, params?: Record<string, string>) {
 
 async function fetchAllPagesPayload(): Promise<Page[]> {
   const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
-    buildPayloadUrl('/api/pages', {
-      depth: '2',
+    buildPayloadUrl("/api/pages", {
+      depth: "2",
       limit: DEFAULT_LIMIT,
     }),
-    { next: { tags: ['pages'] } },
+    { next: { tags: ["pages"] } },
   );
   return normalizePages(response.docs || []);
 }
@@ -104,12 +105,12 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
   let pages: Page[] = [];
   try {
     const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
-      buildPayloadUrl('/api/pages', {
-        'where[parent][exists]': 'false',
-        depth: '2',
+      buildPayloadUrl("/api/pages", {
+        "where[parent][exists]": "false",
+        depth: "2",
         limit: DEFAULT_LIMIT,
       }),
-      { next: { tags: ['root_pages'] } },
+      { next: { tags: ["root_pages"] } },
     );
     pages = normalizePages(response.docs || []);
   } catch {
@@ -118,12 +119,12 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
 
   const [header, homepage] = await Promise.all([
     fetchJSON<Record<string, unknown> | null>(
-      buildPayloadUrl('/api/globals/header'),
-      { next: { tags: ['root_pages'] } },
+      buildPayloadUrl("/api/globals/header"),
+      { next: { tags: ["root_pages"] } },
     ).catch(() => null),
     fetchJSON<Record<string, unknown> | null>(
-      buildPayloadUrl('/api/globals/homepage'),
-      { next: { tags: ['root_pages'] } },
+      buildPayloadUrl("/api/globals/homepage"),
+      { next: { tags: ["root_pages"] } },
     ).catch(() => null),
   ]);
 
@@ -146,14 +147,16 @@ async function fetchPageByFullSlugPayload(
   fullSlug: string,
 ): Promise<{ data: { pages: Page[] } }> {
   const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
-    buildPayloadUrl('/api/pages', {
-      'where[fullSlug][equals]': fullSlug,
-      depth: '2',
-      limit: '1',
+    buildPayloadUrl("/api/pages", {
+      "where[fullSlug][equals]": fullSlug,
+      depth: "2",
+      limit: "1",
     }),
-    { next: { tags: ['page_' + fullSlug] } },
+    { next: { tags: ["page_" + fullSlug] } },
   );
-  const match = response.docs?.[0] ? normalizePage(response.docs[0]) : undefined;
+  const match = response.docs?.[0]
+    ? normalizePage(response.docs[0])
+    : undefined;
 
   return {
     data: {
@@ -167,12 +170,12 @@ async function fetchArticleBySlugPayload(
   _parentSlug?: string,
 ): Promise<{ data: { articles: Article[] } }> {
   const response = await fetchJSON<PayloadDocsResponse<Article>>(
-    buildPayloadUrl('/api/articles', {
-      'where[slug][equals]': slug,
-      depth: '2',
-      limit: '1',
+    buildPayloadUrl("/api/articles", {
+      "where[slug][equals]": slug,
+      depth: "2",
+      limit: "1",
     }),
-    { next: { tags: ['article_' + slug] } },
+    { next: { tags: ["article_" + slug] } },
   );
 
   return {
@@ -182,7 +185,7 @@ async function fetchArticleBySlugPayload(
   };
 }
 const ensureCorrectFullSlug = (fullSlug: string) => {
-  return fullSlug.startsWith('/') ? fullSlug : `/${fullSlug}`;
+  return fullSlug.startsWith("/") ? fullSlug : `/${fullSlug}`;
 };
 
 export const fetchArticleBySlug = cache(fetchArticleBySlugPayload);
@@ -193,3 +196,46 @@ export const fetchPageByFullSlug = cache(async (slug: string) => {
 });
 
 export const fetchRootPages = cache(fetchRootPagesPayload);
+
+async function fetchFooterPayload(): Promise<GlobalFooter | null> {
+  try {
+    const data = await fetchJSON<Record<string, unknown>>(
+      buildPayloadUrl("/api/globals/footer"),
+      { next: { tags: ["footer"] } },
+    );
+    return {
+      logo: (data.logo as GlobalFooter["logo"]) ?? null,
+      navItems: (data.navItems as GlobalFooter["navItems"]) ?? [],
+      copyrightText:
+        (data.copyrightText as GlobalFooter["copyrightText"]) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export const fetchFooter = cache(fetchFooterPayload);
+
+/**
+ * Batch-fetch media URLs by IDs for map markers.
+ * Returns a Map of mediaId → URL string.
+ */
+export async function fetchMediaUrlsByIds(
+  ids: number[],
+): Promise<Map<number, string>> {
+  if (ids.length === 0) return new Map();
+  const response = await fetchJSON<
+    PayloadDocsResponse<{ id: number; url: string }>
+  >(
+    buildPayloadUrl("/api/media", {
+      "where[id][in]": ids.join(","),
+      limit: String(ids.length),
+      depth: "0",
+    }),
+  );
+  const map = new Map<number, string>();
+  for (const doc of response.docs || []) {
+    if (doc.url) map.set(doc.id, doc.url);
+  }
+  return map;
+}

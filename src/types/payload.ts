@@ -43,9 +43,16 @@ export interface PageChild {
   documentId: string;
   category?: string;
   featuredImage?: SharedImageComponent | null;
+  text?: string | RichTextRoot | null;
   children?: {
     docs: PageChild[];
   };
+  detail?: {
+    latitude?: string | null;
+    longitude?: string | null;
+    googleMapsZoom?: number | null;
+    googleMapsAddress?: string | null;
+  } | null;
 }
 
 export interface RichTextRoot {
@@ -86,6 +93,28 @@ export interface Page {
   detail?: {
     timezone?: string | null;
     currencyCode?: string | null;
+    locative?: string | null;
+    genitive?: string | null;
+    latitude?: string | null;
+    longitude?: string | null;
+    googleMapsZoom?: number | null;
+    googleMapsAddress?: string | null;
+  } | null;
+  createdBy?:
+    | {
+        username?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        avatar?: StrapiMedia | null;
+      }
+    | number
+    | null;
+  createdByPublic?: {
+    id: number;
+    username?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatar?: StrapiMedia | null;
   } | null;
 }
 
@@ -139,18 +168,29 @@ interface PageParent {
 }
 
 export enum PageCategory {
-  Misto_k_navstiveni = 'Místo k navštívení',
-  Turisticky_cil = 'Turistický cíl',
-  Mista = 'Místa',
-  Prakticke_informace = 'Praktické informace',
-  Vstupni_podminky = 'Vstupní podmínky',
-  Cesta = 'Cesta',
-  Pocasi = 'Počasí',
-  Doprava = 'Doprava',
-  Mena_a_ceny = 'Měna a ceny',
-  Zdravi_a_bezpeci = 'Zdraví a bezpečí',
-  Jazyk_a_kultura = 'Jazyk a kultura',
-  Jidlo_a_pit = 'Jídlo a pití',
-  Ubytovani = 'Ubytování',
-  Clanky = 'Články',
+  Misto_k_navstiveni = "Místo k navštívení",
+  Turisticky_cil = "Turistický cíl",
+  Mista = "Místa",
+  Prakticke_informace = "Praktické informace",
+  Vstupni_podminky = "Vstupní podmínky",
+  Cesta = "Cesta",
+  Pocasi = "Počasí",
+  Doprava = "Doprava",
+  Mena_a_ceny = "Měna a ceny",
+  Zdravi_a_bezpeci = "Zdraví a bezpečí",
+  Jazyk_a_kultura = "Jazyk a kultura",
+  Jidlo_a_pit = "Jídlo a pití",
+  Ubytovani = "Ubytování",
+  Clanky = "Články",
+}
+
+export interface FooterNavItem {
+  label: string;
+  href: string;
+}
+
+export interface GlobalFooter {
+  logo?: ImageLink | null;
+  navItems: FooterNavItem[];
+  copyrightText: RichTextRoot | null;
 }

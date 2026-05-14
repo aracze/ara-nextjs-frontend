@@ -6,7 +6,7 @@ export const StaticHeroOverlay = ({
   filterId = "blurFilter",
 }: StaticHeroOverlayProps) => {
   return (
-    <div className="absolute top-0 left-0 right-0 mx-auto w-full max-w-[800px] h-full opacity-30 z-[100] flex items-center justify-center pointer-events-none">
+    <div className="absolute top-0 left-0 right-0 mx-auto w-full max-w-[800px] h-full opacity-30 z-[100] flex items-center justify-center pointer-events-none overflow-hidden">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 80.34 40.73"
