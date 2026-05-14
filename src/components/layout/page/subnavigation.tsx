@@ -48,6 +48,7 @@ export const Subnavigation = ({
   currentPageFullSlug,
   currentPageCategory,
   isSubPlace,
+  hasPlaces,
 }: {
   contextTitle: string;
   contextFullSlug: string;
@@ -56,6 +57,7 @@ export const Subnavigation = ({
   currentPageFullSlug: string;
   currentPageCategory?: PageCategory;
   isSubPlace: boolean;
+  hasPlaces?: boolean;
 }) => {
   const isContextActive = currentPageFullSlug === contextFullSlug;
 
@@ -119,6 +121,16 @@ export const Subnavigation = ({
           >
             {contextTitle}
           </Link>
+
+          {/* Anchor link to "Co vidět" section if the page has places */}
+          {hasPlaces && (
+            <a
+              href="#mista"
+              className="px-3 py-4 tracking-wide transition-colors border-b-2 text-gray-800 border-transparent hover:text-[#287bbb]"
+            >
+              Místa
+            </a>
+          )}
 
           {/* Menu items from the context page's children */}
           {sortedChildren.map((pageChild) => {

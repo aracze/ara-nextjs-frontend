@@ -28,11 +28,18 @@ You are an expert Next.js and React developer. When working on the Ara frontend,
 - **Layout Consistency**: Ensure loading states (placeholders) preserve the same `className` and height as the final rendered content to prevent layout shifts (CLS).
 - **Timezone Offsets**: Return `null` for unknown offsets instead of `0` to avoid displaying incorrect data on failure.
 
-### 3. Rich Text Rendering
+### 3. Rich Text Rendering & Authors
 
 - `richTextToHtml` in `utils.ts` is the central place for HTML conversion. It must include global sanitization.
+- **Author Display**: Use the `createdByPublic` virtual field from the backend.
+- **Visibility**: Authors should be displayed on Place-type pages (Places, Cities, Targets) using the `CollapsiblePageTextWithContributor` component.
 - For dynamic titles (e.g., "Praktické informace do..."), use the `genitive` field from Payload for correct Czech declension.
-- Ensure "do" prefixes are handled gracefully to avoid duplicates (e.g., `replace(/^do\s+/i, "")`).
+
+## Type Synchronization
+
+1. **Backend First**: Always make schema changes in the Payload project first.
+2. **Type Generation**: After backend changes, run `pnpm generate:types` in the Payload project.
+3. **Frontend Sync**: Copy/update the generated types in `src/types/payload.ts` to ensure full type safety for new fields like virtual fields.
 
 ## Visual & Design Standards
 

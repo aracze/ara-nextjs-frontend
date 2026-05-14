@@ -36,6 +36,8 @@ export function Header({
   // Najdeme aktuálně aktivní stránku pro mega menu
   const activePage = pages?.find((p) => String(p.id) === activeDropdown);
 
+  const CONTINENT_ORDER = ["Evropa", "Amerika", "Asie", "Afrika", "Austrálie"];
+
   return (
     <header
       className={`absolute top-0 left-0 w-full z-[200] transition-colors duration-300 ${
@@ -87,7 +89,16 @@ export function Header({
 
           <div className="hidden md:flex items-center gap-0 h-full text-white/90 font-semibold">
             {[...(pages || [])]
-              .sort((a, b) => a.title.localeCompare(b.title, "cs"))
+              .sort((a, b) => {
+                const indexA = CONTINENT_ORDER.indexOf(a.title);
+                const indexB = CONTINENT_ORDER.indexOf(b.title);
+
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+
+                return a.title.localeCompare(b.title, "cs");
+              })
               .map((page, index) => {
                 const hasChildren = page.children?.docs?.length > 0;
                 const pageId = page.id || `temp-id-${index}`;

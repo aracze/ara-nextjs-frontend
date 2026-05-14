@@ -43,9 +43,16 @@ export interface PageChild {
   documentId: string;
   category?: string;
   featuredImage?: SharedImageComponent | null;
+  text?: string | RichTextRoot | null;
   children?: {
     docs: PageChild[];
   };
+  detail?: {
+    latitude?: string | null;
+    longitude?: string | null;
+    googleMapsZoom?: number | null;
+    googleMapsAddress?: string | null;
+  } | null;
 }
 
 export interface RichTextRoot {
@@ -88,6 +95,10 @@ export interface Page {
     currencyCode?: string | null;
     locative?: string | null;
     genitive?: string | null;
+    latitude?: string | null;
+    longitude?: string | null;
+    googleMapsZoom?: number | null;
+    googleMapsAddress?: string | null;
   } | null;
   createdBy?:
     | {

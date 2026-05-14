@@ -4,7 +4,7 @@ import { HeroSection } from "./hero-section";
 import { Subnavigation } from "./subnavigation";
 import { MainContent } from "./main-content";
 import { PlacesToVisit } from "./places-to-visit";
-import { fetchPageByFullSlug } from "@/lib/payload";
+import { fetchPageByFullSlug, fetchMediaUrlsByIds } from "@/lib/payload";
 import { fetchExchangeRate } from "@/lib/exchange-rate";
 import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 
@@ -39,8 +39,43 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
     ? await fetchExchangeRate(effectiveCurrencyCode)
     : null;
 
+  // Resolve image URLs for child pages (for map markers & place cards)
+  const childImageIds = pageChildren
+    .map<number | null>((c) => {
+      const imgField = c.featuredImage?.image;
+      return typeof imgField === "number" ? imgField : null;
+    })
+    .filter((id): id is number => id !== null);
+  const imageUrlMap = await fetchMediaUrlsByIds(childImageIds);
+  // Build a map from child page ID → image URL
+  const childImageUrlMap = new Map<number | string, string>();
+  for (const child of pageChildren) {
+    const imgField = child.featuredImage?.image;
+    const imgId = typeof imgField === "number" ? imgField : null;
+    if (imgId && imageUrlMap.has(imgId)) {
+      childImageUrlMap.set(child.id, imageUrlMap.get(imgId)!);
+    } else if (
+      typeof imgField === "object" &&
+      imgField !== null &&
+      "url" in imgField &&
+      imgField.url
+    ) {
+      childImageUrlMap.set(child.id, String(imgField.url));
+    }
+  }
+
+  // Map center from page detail
+  const mapCenter =
+    page.detail?.latitude && page.detail?.longitude
+      ? {
+          lat: parseFloat(page.detail.latitude),
+          lng: parseFloat(page.detail.longitude),
+        }
+      : null;
+  const mapZoom = page.detail?.googleMapsZoom ?? 7;
+
   return (
-    <div className="flex flex-col bg-white overflow-x-hidden transition-all duration-500">
+    <div className="flex flex-col bg-white transition-all duration-500">
       <article key={page.id} className="w-full">
         {/* 1. HERO SECTION (initial-photo) */}
         <HeroSection
@@ -60,6 +95,7 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           currentPageFullSlug={page.fullSlug}
           currentPageCategory={page.category}
           isSubPlace={menuContext.isSubPlace}
+          hasPlaces={pageChildren.length > 0}
         />
 
         {/* 2. CONTENT AREA */}
@@ -78,7 +114,13 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
 
         {/* 3. PLACES TO VISIT SECTION */}
         {pageChildren.length > 0 && (
-          <PlacesToVisit pageChildren={pageChildren} />
+          <PlacesToVisit
+            pageChildren={pageChildren}
+            mapCenter={mapCenter}
+            mapZoom={mapZoom}
+            imageUrlMap={childImageUrlMap}
+            parentLocative={page.detail?.locative ?? null}
+          />
         )}
 
         {page.articles?.length > 0 && (

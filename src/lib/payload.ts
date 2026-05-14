@@ -215,3 +215,27 @@ async function fetchFooterPayload(): Promise<GlobalFooter | null> {
 }
 
 export const fetchFooter = cache(fetchFooterPayload);
+
+/**
+ * Batch-fetch media URLs by IDs for map markers.
+ * Returns a Map of mediaId → URL string.
+ */
+export async function fetchMediaUrlsByIds(
+  ids: number[],
+): Promise<Map<number, string>> {
+  if (ids.length === 0) return new Map();
+  const response = await fetchJSON<
+    PayloadDocsResponse<{ id: number; url: string }>
+  >(
+    buildPayloadUrl("/api/media", {
+      "where[id][in]": ids.join(","),
+      limit: String(ids.length),
+      depth: "0",
+    }),
+  );
+  const map = new Map<number, string>();
+  for (const doc of response.docs || []) {
+    if (doc.url) map.set(doc.id, doc.url);
+  }
+  return map;
+}

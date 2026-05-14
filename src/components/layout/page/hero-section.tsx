@@ -35,7 +35,7 @@ export const HeroSection = ({
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav
             aria-label="Breadcrumb navigation"
-            className="mb-4 flex items-center gap-2 -translate-y-[24px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
+            className="mb-4 flex items-center gap-2 -translate-y-[20px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
           >
             <ol className="flex items-center gap-1.5 list-none p-0 m-0">
               {breadcrumbs.map((bc, idx) => {
@@ -66,9 +66,10 @@ export const HeroSection = ({
             </ol>
           </nav>
         )}
-        <h1 className="relative -translate-y-[18px] text-[36px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)] after:absolute after:bottom-[-5px] after:left-1/2 after:w-[30px] after:-ml-[15px] after:border-b after:border-[#D7E1EF] after:content-['']">
+        <h1 className="-translate-y-[16px] text-[42px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)]">
           {title}
         </h1>
+        <div className="-translate-y-[12px] w-[30px] h-px bg-[#D7E1EF] rounded-full mx-auto"></div>
       </div>
 
       <StaticHeroOverlay filterId={filterId} />

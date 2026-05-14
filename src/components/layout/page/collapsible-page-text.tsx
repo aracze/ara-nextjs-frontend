@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_AVATAR = "/assets/avatar-white.jpg";
 
@@ -49,13 +50,16 @@ export function CollapsiblePageTextWithContributor({
     [textHtml],
   );
 
-  const renderHtml = shouldCollapse && !isExpanded ? previewHtml : textHtml;
-
   return (
     <div className="relative">
-      <div className="prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
+      <div
+        className={cn(
+          "prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline",
+          !isExpanded && shouldCollapse && "max-h-[250px] overflow-hidden",
+        )}
+      >
         <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
-          {renderHtml}
+          {textHtml}
         </ReactMarkdown>
       </div>
 

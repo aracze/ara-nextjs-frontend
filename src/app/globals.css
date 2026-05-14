@@ -11,6 +11,9 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-white text-[#353535] font-sans;
     text-rendering: optimizeLegibility;
