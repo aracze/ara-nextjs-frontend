@@ -147,6 +147,21 @@
     margin-right: -1rem;
   }
 
+  /* Article body: narrower text column for comfortable reading (~70 chars/line),
+     while images and maps break back out to the full column width. */
+  @media (min-width: 1024px) {
+    .prose.article-prose {
+      padding-left: 64px;
+      padding-right: 64px;
+    }
+
+    .prose.article-prose .image-wrapper,
+    .prose.article-prose .rich-text-map-container {
+      margin-left: -64px;
+      margin-right: -64px;
+    }
+  }
+
   .prose .image-wrapper > a {
     display: block;
   }

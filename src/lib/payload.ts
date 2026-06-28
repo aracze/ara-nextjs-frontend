@@ -143,6 +143,37 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
   };
 }
 
+/**
+ * Article cards come from a page's `primaryArticles`/`secondaryArticles` join, where
+ * Payload returns `featuredImage.image` only as a numeric id (join fields don't deep-populate
+ * uploads, regardless of depth). Resolve those ids to URLs so listing cards show thumbnails.
+ */
+async function enrichArticleImages(articles: Article[]): Promise<Article[]> {
+  if (!articles?.length) return articles ?? [];
+
+  const ids = articles
+    .map((a) => a.featuredImage?.image as unknown)
+    .filter((img): img is number => typeof img === "number");
+
+  if (ids.length === 0) return articles;
+
+  const urlMap = await fetchMediaUrlsByIds([...new Set(ids)]);
+
+  return articles.map((a) => {
+    const img = a.featuredImage?.image as unknown;
+    if (typeof img === "number" && urlMap.has(img)) {
+      return {
+        ...a,
+        featuredImage: {
+          ...(a.featuredImage as object),
+          image: { url: urlMap.get(img)!, alternativeText: null },
+        },
+      } as Article;
+    }
+    return a;
+  });
+}
+
 async function fetchPageByFullSlugPayload(
   fullSlug: string,
 ): Promise<{ data: { pages: Page[] } }> {
@@ -157,6 +188,10 @@ async function fetchPageByFullSlugPayload(
   const match = response.docs?.[0]
     ? normalizePage(response.docs[0])
     : undefined;
+
+  if (match) {
+    match.articles = await enrichArticleImages(match.articles);
+  }
 
   return {
     data: {

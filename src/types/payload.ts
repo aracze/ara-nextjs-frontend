@@ -67,15 +67,25 @@ export interface ArticleMainPage {
   fullSlug: string;
 }
 
+export interface ArticleAuthor {
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  description?: string | null;
+  avatar?: { url?: string | null } | null;
+}
+
 export interface Article {
   documentId: string;
   title: string;
   slug: string;
   text: string | RichTextRoot;
+  attribution?: string | RichTextRoot | null;
   category: string;
   publishedAt: string;
   featuredImage: SharedImageComponent | null;
   mainPage?: ArticleMainPage | null;
+  createdByPublic?: ArticleAuthor | null;
 }
 
 export interface Page {
@@ -182,6 +192,8 @@ export enum PageCategory {
   Jidlo_a_pit = "Jídlo a pití",
   Ubytovani = "Ubytování",
   Clanky = "Články",
+  Rubrika = "Rubrika",
+  Staticka_stranka = "Statická stránka",
 }
 
 export interface FooterNavItem {

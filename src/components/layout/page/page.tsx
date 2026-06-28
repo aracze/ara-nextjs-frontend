@@ -86,17 +86,20 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           breadcrumbs={breadcrumbs}
         />
 
-        {/* Sub-navigation bar style */}
-        <Subnavigation
-          contextTitle={menuContext.contextTitle}
-          contextFullSlug={menuContext.contextFullSlug}
-          pageChildren={menuContext.menuChildren}
-          rootChildren={practicalInfoSourceChildren}
-          currentPageFullSlug={page.fullSlug}
-          currentPageCategory={page.category}
-          isSubPlace={menuContext.isSubPlace}
-          hasPlaces={pageChildren.length > 0}
-        />
+        {/* Sub-navigation bar style — not shown on rubric or static content pages */}
+        {page.category !== PageCategory.Rubrika &&
+          page.category !== PageCategory.Staticka_stranka && (
+            <Subnavigation
+              contextTitle={menuContext.contextTitle}
+              contextFullSlug={menuContext.contextFullSlug}
+              pageChildren={menuContext.menuChildren}
+              rootChildren={practicalInfoSourceChildren}
+              currentPageFullSlug={page.fullSlug}
+              currentPageCategory={page.category}
+              isSubPlace={menuContext.isSubPlace}
+              hasPlaces={pageChildren.length > 0}
+            />
+          )}
 
         {/* 2. CONTENT AREA */}
         <MainContent

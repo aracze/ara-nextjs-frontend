@@ -4,6 +4,8 @@ export const rootPageCategories: PageCategory[] = [
   PageCategory.Mista,
   PageCategory.Turisticky_cil,
   PageCategory.Misto_k_navstiveni,
+  PageCategory.Rubrika,
+  PageCategory.Staticka_stranka,
 ];
 
 function getGenitivePlace(contextPage: PayloadPage): string {
