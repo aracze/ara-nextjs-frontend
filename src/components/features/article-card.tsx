@@ -13,10 +13,14 @@ export function ArticleCard({
   href: string;
 }) {
   const articleText = richTextToPlainText(article.text);
-  const imageUrl = article.featuredImage?.image?.url
-    ? article.featuredImage.image.url.startsWith("/")
-      ? `${getPayloadURL()}${article.featuredImage.image.url}`
-      : article.featuredImage.image.url
+  // `image` is a populated media object after enrichArticleImages (a numeric id before).
+  const media = article.featuredImage?.image;
+  const rawImageUrl =
+    media && typeof media === "object" ? media.url : null;
+  const imageUrl = rawImageUrl
+    ? rawImageUrl.startsWith("/")
+      ? `${getPayloadURL()}${rawImageUrl}`
+      : rawImageUrl
     : null;
 
   return (

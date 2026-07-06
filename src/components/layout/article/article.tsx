@@ -5,10 +5,7 @@ import rehypeSlug from "rehype-slug";
 import { Article as ArticleType } from "@/types/payload";
 import { getPayloadURL, richTextToHtml } from "@/lib/utils";
 import Link from "next/link";
-import { ChevronLeft, Calendar } from "lucide-react";
-import { StaticHeroOverlay } from "@/components/features/static-hero-overlay";
-import { StaticHeroImage } from "@/components/features/static-hero-image";
-import { StaticHeroWave } from "@/components/features/static-hero-wave";
+import Image from "next/image";
 import { fetchPageByFullSlug } from "@/lib/payload";
 import { Subnavigation } from "@/components/layout/page/subnavigation";
 import { HeroSection } from "@/components/layout/page/hero-section";
@@ -31,19 +28,7 @@ export const Article: React.FC<ArticleProps> = async ({
     contextSlug || article.mainPage?.fullSlug?.replace(/^\//, "") || null;
   const { contextPage, rootPage } = await resolveContextPages(contextPageSlug);
 
-  const backHref = contextPage ? contextPage.fullSlug : "/";
-  const backLabel = contextPage ? contextPage.title : "Zpět na hlavní stranu";
-
   const heroImageUrl = resolveHeroImage(contextPage || rootPage, article);
-
-  const formattedDate = new Date(article.publishedAt).toLocaleDateString(
-    "cs-CZ",
-    {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    },
-  );
 
   // Author (safe public subset from the backend virtual field)
   const author = article.createdByPublic ?? null;
@@ -53,12 +38,22 @@ export const Article: React.FC<ArticleProps> = async ({
       null
     : null;
   const profileHref = author?.username ? `/profil/${author.username}` : null;
+  const DEFAULT_AVATAR = "/assets/avatar-white.jpg";
   const rawAvatar = author?.avatar?.url;
-  const avatarUrl = rawAvatar
-    ? rawAvatar.startsWith("/")
-      ? new URL(rawAvatar, process.env.PAYLOAD_BASE_API_URL).toString()
-      : rawAvatar
-    : "/assets/avatar-white.jpg";
+  // `getPayloadURL()` vždy vrátí platnou absolutní URL (fallback localhost), takže
+  // `new URL()` neselže kvůli chybějícímu env. try/catch je pojistka proti nevalidní cestě.
+  let avatarUrl = DEFAULT_AVATAR;
+  if (rawAvatar) {
+    if (rawAvatar.startsWith("/")) {
+      try {
+        avatarUrl = new URL(rawAvatar, getPayloadURL()).toString();
+      } catch {
+        avatarUrl = DEFAULT_AVATAR;
+      }
+    } else {
+      avatarUrl = rawAvatar;
+    }
+  }
   const authorBio = author?.description || null;
 
   return (
@@ -85,31 +80,8 @@ export const Article: React.FC<ArticleProps> = async ({
       )}
 
       {/* Article Content + side advertisement (two-column on desktop) */}
-      <div className="max-w-7xl mx-auto px-4 py-16 md:py-24 flex flex-col items-stretch lg:flex-row gap-8 lg:gap-10">
+      <div className="max-w-7xl mx-auto px-4 py-16 md:py-8 flex flex-col items-stretch lg:flex-row gap-8 lg:gap-10">
         <main className="flex-1 min-w-0 lg:max-w-4xl">
-          {/* Breadcrumb-style back link + meta */}
-          <div className="flex flex-wrap items-center gap-4 mb-10">
-            <Link
-              href={backHref}
-              className="inline-flex items-center text-[#215491] hover:text-[#1a3f6c] transition-colors group text-sm font-bold uppercase tracking-widest"
-            >
-              <ChevronLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
-              {backLabel}
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap gap-4 mb-8">
-            {article.category && (
-              <span className="bg-[#215491] text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                {article.category}
-              </span>
-            )}
-            <div className="flex items-center text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-              <Calendar className="w-3 h-3 mr-2" />
-              {formattedDate}
-            </div>
-          </div>
-
           <div className="article-prose prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
             <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
               {articleText}
@@ -130,18 +102,20 @@ export const Article: React.FC<ArticleProps> = async ({
             <div className="mt-8 flex items-start gap-4 border-t border-[#dadbdc] pt-5 pb-2.5">
               {profileHref ? (
                 <Link href={profileHref} className="shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={avatarUrl}
                     alt={authorName}
+                    width={45}
+                    height={45}
                     className="h-[45px] w-[45px] rounded-full border-[3px] border-white object-cover shadow-[0_3px_5px_rgba(0,0,0,0.3)]"
                   />
                 </Link>
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={avatarUrl}
                   alt={authorName}
+                  width={45}
+                  height={45}
                   className="h-[45px] w-[45px] shrink-0 rounded-full border-[3px] border-white object-cover shadow-[0_3px_5px_rgba(0,0,0,0.3)]"
                 />
               )}

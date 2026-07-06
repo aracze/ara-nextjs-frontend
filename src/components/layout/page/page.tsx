@@ -98,6 +98,7 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
               currentPageCategory={page.category}
               isSubPlace={menuContext.isSubPlace}
               hasPlaces={pageChildren.length > 0}
+              hasArticles={page.articles?.length > 0}
             />
           )}
 
@@ -130,6 +131,7 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           <ArticlesList
             articles={page.articles}
             parentFullSlug={page.fullSlug}
+            destinationLocative={page.detail?.locative}
           />
         )}
       </article>

@@ -24,9 +24,27 @@ const AD_VARIANTS = {
 } as const;
 
 /**
+ * AdSense loader script. Render exactly ONCE per page (the article layout renders
+ * several `ArticleAd` boxes, but the loader must be injected only once — Next's
+ * `Script` id must be unique and the external script loaded a single time).
+ */
+export function AdSenseScript() {
+  return (
+    <Script
+      id="adsbygoogle-js"
+      async
+      strategy="afterInteractive"
+      crossOrigin="anonymous"
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+    />
+  );
+}
+
+/**
  * Sticky side advertisement shown next to the article body.
  * Visuals mirror the legacy `.ad-article-along` box (light gray, rounded, sticky);
  * the ad creative itself rotates via AdSense.
+ * Requires `<AdSenseScript />` to be rendered once elsewhere on the page.
  */
 export function ArticleAd({
   variant = "primary",
@@ -51,22 +69,13 @@ export function ArticleAd({
   }, []);
 
   return (
-    <>
-      <Script
-        id="adsbygoogle-js"
-        async
-        strategy="afterInteractive"
-        crossOrigin="anonymous"
-        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+    <div className={`rounded-[15px] bg-[#f6f6f6] p-5 ${className}`}>
+      <ins
+        className="adsbygoogle mx-auto block"
+        style={{ display: "block", width, height }}
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={slot}
       />
-      <div className={`rounded-[15px] bg-[#f6f6f6] p-5 ${className}`}>
-        <ins
-          className="adsbygoogle mx-auto block"
-          style={{ display: "block", width, height }}
-          data-ad-client={ADSENSE_CLIENT}
-          data-ad-slot={slot}
-        />
-      </div>
-    </>
+    </div>
   );
 }

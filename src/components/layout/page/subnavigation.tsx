@@ -49,6 +49,7 @@ export const Subnavigation = ({
   currentPageCategory,
   isSubPlace,
   hasPlaces,
+  hasArticles,
 }: {
   contextTitle: string;
   contextFullSlug: string;
@@ -58,6 +59,7 @@ export const Subnavigation = ({
   currentPageCategory?: PageCategory;
   isSubPlace: boolean;
   hasPlaces?: boolean;
+  hasArticles?: boolean;
 }) => {
   const isContextActive = currentPageFullSlug === contextFullSlug;
 
@@ -164,6 +166,16 @@ export const Subnavigation = ({
             >
               Praktické informace
             </Link>
+          )}
+
+          {/* Anchor link to "Články a cestopisy" section — always last, only if the page has articles */}
+          {hasArticles && (
+            <a
+              href="#clanky"
+              className="px-3 py-4 tracking-wide transition-colors border-b-2 text-gray-800 border-transparent hover:text-[#287bbb]"
+            >
+              Články
+            </a>
           )}
         </div>
       </div>

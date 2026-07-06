@@ -17,7 +17,7 @@ export const StaticHeroImage = ({
               .replace(/background-position:\s*/i, "")
               .replace(/;/g, "")
               .trim()
-          : "50% 35%",
+          : "50% 50%",
       }}
     />
   );

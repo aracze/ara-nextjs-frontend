@@ -5,7 +5,7 @@ import { MessageCircle, Facebook } from "lucide-react";
 /**
  * Comment count + "Vložit komentář" + "Sdílet" action row at the end of an article.
  * Mirrors the legacy `.article-action` bar. Comments are not wired up yet — the
- * comment links are placeholders (anchor to #komentare); sharing opens the FB dialog.
+ * comment items are static placeholders (no navigation); sharing opens the FB dialog.
  */
 export function ArticleActions({
   commentCount = 0,
@@ -23,21 +23,15 @@ export function ArticleActions({
 
   return (
     <div className="mt-6 flex items-center justify-between border-y border-[#2c3643] py-2.5">
-      {/* Comments (placeholder until wired up) */}
+      {/* Comments (static placeholders until wired up — no navigation) */}
       <div className="flex items-center gap-3">
-        <a
-          href="#komentare"
-          className="flex items-center gap-2 opacity-60 transition-opacity hover:opacity-100"
-        >
+        <span className="flex items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
           <MessageCircle className="h-5 w-5" strokeWidth={1.5} />
           <span className="text-black">{commentCount}</span>
-        </a>
-        <a
-          href="#komentare"
-          className="text-xs font-bold uppercase tracking-wide text-black/70 opacity-80 transition-opacity hover:opacity-100"
-        >
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wide text-black/70 opacity-80 transition-opacity hover:opacity-100">
           Vložit komentář
-        </a>
+        </span>
       </div>
 
       {/* Share */}

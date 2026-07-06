@@ -203,7 +203,7 @@ function richTextToHtmlInternal(
           const [, cloudName, publicId] = cloudinaryMatch;
           const base = `https://res.cloudinary.com/${cloudName}/image/upload`;
           const fullUrl = `${base}/c_fit,w_800/${publicId}`;
-          const defaultUrl = `${base}/c_fill,g_center,h_420,w_790/${publicId}`;
+          const defaultUrl = `${base}/c_fit,w_790/${publicId}`;
           const smallUrl = `${base}/c_fit,w_420/${publicId}`;
           html = `<figure class="image-wrapper"><a href="${fullUrl}" rel="lightbox"><img alt="${alt}" src="${defaultUrl}" srcset="${smallUrl} 420w, ${defaultUrl} 747w" sizes="(min-width: 480px) calc(100vw - 60px), calc(100vw - 30px)" /></a>`;
         } else {
@@ -222,6 +222,21 @@ function richTextToHtmlInternal(
         }
         html += "</figure>";
         return html;
+      }
+      if (fields?.blockType === "promoBlock") {
+        const content = richTextToHtmlInternal(fields.content, context);
+        if (!content.trim()) return "";
+        // Promo box = placený/komerční odkaz → doplníme rel="sponsored".
+        const withSponsored = content
+          .replace(
+            /(<a\b[^>]*\brel=")([^"]*)"/g,
+            (_m, prefix, rel) =>
+              /\bsponsored\b/.test(rel)
+                ? `${prefix}${rel}"`
+                : `${prefix}${rel} sponsored"`,
+          )
+          .replace(/(<a\b(?![^>]*\brel=)[^>]*)>/g, '$1 rel="sponsored">');
+        return `<div class="article-promo">${withSponsored}</div>`;
       }
       if (fields?.blockType === "mapBlock") {
         const rawIframeUrl = String(fields.iframeUrl ?? "").trim();

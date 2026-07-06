@@ -38,7 +38,9 @@
     font-weight: 400;
   }
 
-  .prose p:first-of-type {
+  /* Lead paragraph: only the article/text first top-level paragraph,
+     not paragraphs nested in blockquotes, figures, etc. */
+  .prose > p:first-of-type {
     font-size: 20px;
     line-height: 1.8; /* 180% for lead paragraphs */
     color: #5b666e;
@@ -137,6 +139,28 @@
 
   .prose a:hover {
     text-decoration: underline;
+  }
+
+  /* Emphasis (legacy used font-weight:600 / semibold, not the browser-default 700). */
+  .prose strong,
+  .prose b {
+    font-weight: 600;
+  }
+
+  /* Highlighted quote/callout block (legacy .article-content__highlights) */
+  .prose blockquote {
+    margin: 20px 0;
+    padding: 10px 0 10px 20px;
+    border-left: 3px solid #1f518e;
+    font-style: italic;
+    font-size: 18px;
+    color: #76818a;
+  }
+
+  .prose blockquote p {
+    margin: 0;
+    font-size: inherit;
+    color: inherit;
   }
 
   /* Content images (from Payload contentImage block) */
@@ -326,6 +350,13 @@
       }
     }
   }
+
+  /* Kurzívní poznámka těsně pod tabulkou (např. "Pozn.: …") patří k tabulce,
+     takže velkou spodní mezeru (mb-10 = 40px) zúžíme, ať pod ní nevisí odtržená. */
+  .prose .rich-text-table-container:has(+ p > em:only-child) {
+    margin-bottom: 0.75rem;
+  }
+
   /* Map styling within rich text */
   .prose .rich-text-map-container {
     @apply my-10;
@@ -337,6 +368,20 @@
 
   .prose .rich-text-map-caption {
     @apply text-sm text-gray-500 italic mt-3 text-center;
+  }
+
+  /* Propagační / reklamní box (legacy .article-rek) — tenká linka nahoře i dole */
+  .prose .article-promo {
+    border-top: 1px solid #dbe6ec;
+    border-bottom: 1px solid #dbe6ec;
+    margin: 20 0;
+    padding: 10px 0;
+  }
+
+  .prose .article-promo p {
+    font-size: 18px;
+    padding: 10px;
+    margin-bottom: 0;
   }
 
   /* Seasonality (Calendar) styling - ARA.CZ Original Match */
