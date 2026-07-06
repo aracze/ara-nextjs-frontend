@@ -9,7 +9,7 @@ import Image from "next/image";
 import { fetchPageByFullSlug } from "@/lib/payload";
 import { Subnavigation } from "@/components/layout/page/subnavigation";
 import { HeroSection } from "@/components/layout/page/hero-section";
-import { ArticleAd } from "@/components/features/article-ad";
+import { ArticleAd, AdSenseScript } from "@/components/features/article-ad";
 import { ArticleActions } from "@/components/features/article-actions";
 
 interface ArticleProps {
@@ -150,6 +150,8 @@ export const Article: React.FC<ArticleProps> = async ({
             each ad is `sticky`, so the first pins in the upper half and the second
             takes over in the lower half (legacy `sideAds--first` / `sideAds--second`). */}
         <aside className="hidden lg:flex flex-col w-[340px] shrink-0">
+          {/* AdSense loader — rendered once, shared by both ad boxes below. */}
+          <AdSenseScript />
           <div className="flex-1">
             <ArticleAd variant="primary" className="sticky top-5" />
           </div>
@@ -192,12 +194,11 @@ function resolveHeroImage(
   } | null,
   article: ArticleType,
 ) {
-  // Prefer article's own featured image, fall back to context page
-  const source = article.featuredImage?.image?.url
-    ? article.featuredImage
-    : page?.featuredImage;
-
-  const url = source?.image?.url;
+  // Prefer article's own featured image (a populated media object), fall back to context page.
+  const articleImage = article.featuredImage?.image;
+  const url =
+    (articleImage && typeof articleImage === "object" ? articleImage.url : null) ??
+    page?.featuredImage?.image?.url;
   if (!url) return null;
 
   return url.startsWith("/") ? `${getPayloadURL()}${url}` : url;

@@ -75,6 +75,15 @@ export interface ArticleAuthor {
   avatar?: { url?: string | null } | null;
 }
 
+/**
+ * Article featured image. From a page's articles join `image` comes back as a numeric
+ * media id (uploads aren't deep-populated); after `enrichArticleImages` it's a populated
+ * media object. Model both instead of casting.
+ */
+export interface ArticleFeaturedImage extends Omit<SharedImageComponent, "image"> {
+  image: StrapiMedia | number | null;
+}
+
 export interface Article {
   documentId: string;
   title: string;
@@ -83,7 +92,7 @@ export interface Article {
   attribution?: string | RichTextRoot | null;
   category: string;
   publishedAt: string;
-  featuredImage: SharedImageComponent | null;
+  featuredImage: ArticleFeaturedImage | null;
   mainPage?: ArticleMainPage | null;
   createdByPublic?: ArticleAuthor | null;
 }

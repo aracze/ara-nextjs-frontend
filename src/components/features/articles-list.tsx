@@ -1,6 +1,13 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { Article } from "@/types/payload";
 import { ArticleCard } from "./article-card";
+
+// Kolik článků přibude na první zobrazení i po každém kliknutí na „Zobrazit další".
+// 4 = jedna plná řada čtyřsloupcové mřížky.
+const ARTICLES_STEP = 4;
 
 interface ArticlesProps {
   articles: Article[];
@@ -9,11 +16,13 @@ interface ArticlesProps {
   destinationLocative?: string | null;
 }
 
-export const ArticlesList: React.FC<ArticlesProps> = ({
+export const ArticlesList = ({
   articles: articlesProp,
   parentFullSlug,
   destinationLocative,
-}) => {
+}: ArticlesProps) => {
+  const [visibleCount, setVisibleCount] = useState(ARTICLES_STEP);
+
   // Ensure we have an array even if Payload returns a single object (due to relation type)
   const articles = Array.isArray(articlesProp)
     ? articlesProp
@@ -22,6 +31,9 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
       : [];
 
   if (articles.length === 0) return null;
+
+  const visibleArticles = articles.slice(0, visibleCount);
+  const hasMore = visibleCount < articles.length;
 
   // Lokativ je uložený i s předložkou („v Chorvatsku", „na Slovensku", „ve Španělsku").
   // Očistíme na holý tvar a použijeme „po {…}" (po Chorvatsku / po Slovensku) — funguje
@@ -44,8 +56,8 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article, index) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {visibleArticles.map((article, index) => {
             const href = parentFullSlug
               ? `${parentFullSlug.replace(/\/$/, "")}/${article.slug}`
               : `/blog/${article.slug}`;
@@ -57,6 +69,19 @@ export const ArticlesList: React.FC<ArticlesProps> = ({
             );
           })}
         </div>
+
+        {hasMore && (
+          <div className="mt-12 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((c) => c + ARTICLES_STEP)}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-[#215491]/30 px-7 py-3 text-sm font-bold uppercase tracking-wider text-[#215491] font-heading transition-all hover:border-[#215491] hover:bg-[#215491] hover:text-white"
+            >
+              Zobrazit další články
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

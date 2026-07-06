@@ -152,7 +152,7 @@ async function enrichArticleImages(articles: Article[]): Promise<Article[]> {
   if (!articles?.length) return articles ?? [];
 
   const ids = articles
-    .map((a) => a.featuredImage?.image as unknown)
+    .map((a) => a.featuredImage?.image)
     .filter((img): img is number => typeof img === "number");
 
   if (ids.length === 0) return articles;
@@ -160,15 +160,15 @@ async function enrichArticleImages(articles: Article[]): Promise<Article[]> {
   const urlMap = await fetchMediaUrlsByIds([...new Set(ids)]);
 
   return articles.map((a) => {
-    const img = a.featuredImage?.image as unknown;
-    if (typeof img === "number" && urlMap.has(img)) {
+    const img = a.featuredImage?.image;
+    if (a.featuredImage && typeof img === "number" && urlMap.has(img)) {
       return {
         ...a,
         featuredImage: {
-          ...(a.featuredImage as object),
+          ...a.featuredImage,
           image: { url: urlMap.get(img)!, alternativeText: null },
         },
-      } as Article;
+      };
     }
     return a;
   });
