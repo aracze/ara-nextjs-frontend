@@ -1,5 +1,6 @@
 import { Page as PayloadPage, PageCategory } from "@/types/payload";
 import { ArticlesList } from "@/components/features/articles-list";
+import { ArticlesListClassic } from "@/components/features/articles-list-classic";
 import { HeroSection } from "./hero-section";
 import { Subnavigation } from "./subnavigation";
 import { MainContent } from "./main-content";
@@ -32,6 +33,16 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
     safeRootPage,
     menuContext.isSubPlace,
   );
+
+  // "Místa"/"Články" v sekundárním menu patří kontextovému místu (např. Chorvatsko),
+  // ne aktuální podstránce (např. Vstupní podmínky). Načteme proto data kontextové stránky.
+  const contextPage =
+    menuContext.contextFullSlug === page.fullSlug
+      ? page
+      : ((await fetchPageByFullSlug(menuContext.contextFullSlug)).data
+          .pages[0] ?? page);
+  const contextHasPlaces = (contextPage.children?.docs?.length ?? 0) > 0;
+  const contextHasArticles = (contextPage.articles?.length ?? 0) > 0;
 
   const effectiveCurrencyCode =
     page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
@@ -97,8 +108,8 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
               currentPageFullSlug={page.fullSlug}
               currentPageCategory={page.category}
               isSubPlace={menuContext.isSubPlace}
-              hasPlaces={pageChildren.length > 0}
-              hasArticles={page.articles?.length > 0}
+              hasPlaces={contextHasPlaces}
+              hasArticles={contextHasArticles}
             />
           )}
 
@@ -127,13 +138,21 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           />
         )}
 
-        {page.articles?.length > 0 && (
-          <ArticlesList
-            articles={page.articles}
-            parentFullSlug={page.fullSlug}
-            destinationLocative={page.detail?.locative}
-          />
-        )}
+        {/* Rubriky používají mřížkový layout, ostatní stránky (místa k navštívení)
+            klasický vertikální seznam s reklamním sloupcem. */}
+        {page.articles?.length > 0 &&
+          (page.category === PageCategory.Rubrika ? (
+            <ArticlesList
+              articles={page.articles}
+              parentFullSlug={page.fullSlug}
+            />
+          ) : (
+            <ArticlesListClassic
+              articles={page.articles}
+              parentFullSlug={page.fullSlug}
+              destinationLocative={page.detail?.locative}
+            />
+          ))}
       </article>
     </div>
   );

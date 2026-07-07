@@ -274,3 +274,61 @@ export async function fetchMediaUrlsByIds(
   }
   return map;
 }
+
+/**
+ * All indexable page & article paths for the sitemap. Pages use `fullSlug`
+ * (už zohledňuje "include in child URL paths"), články `mainPage.fullSlug + slug`.
+ */
+export async function fetchSitemapEntries(): Promise<{
+  pages: { path: string; lastModified: string }[];
+  articles: { path: string; lastModified: string }[];
+}> {
+  type SitemapPage = { fullSlug?: string | null; updatedAt?: string | null };
+  type SitemapArticle = {
+    slug?: string | null;
+    updatedAt?: string | null;
+    mainPage?: { fullSlug?: string | null } | number | null;
+  };
+
+  const [pagesRes, articlesRes] = await Promise.all([
+    fetchJSON<PayloadDocsResponse<SitemapPage>>(
+      buildPayloadUrl("/api/pages", {
+        depth: "0",
+        limit: "0",
+        pagination: "false",
+      }),
+      { next: { tags: ["sitemap"] } },
+    ).catch(() => ({ docs: [] as SitemapPage[] })),
+    fetchJSON<PayloadDocsResponse<SitemapArticle>>(
+      buildPayloadUrl("/api/articles", {
+        depth: "1",
+        limit: "0",
+        pagination: "false",
+      }),
+      { next: { tags: ["sitemap"] } },
+    ).catch(() => ({ docs: [] as SitemapArticle[] })),
+  ]);
+
+  const now = new Date().toISOString();
+
+  const pages = (pagesRes.docs || [])
+    .filter((p) => typeof p.fullSlug === "string" && p.fullSlug)
+    .map((p) => ({ path: p.fullSlug as string, lastModified: p.updatedAt || now }));
+
+  const articles = (articlesRes.docs || [])
+    .map((a) => {
+      const mp = a.mainPage;
+      const parent =
+        mp && typeof mp === "object" && typeof mp.fullSlug === "string"
+          ? mp.fullSlug
+          : null;
+      if (!parent || !a.slug) return null;
+      return {
+        path: `${parent.replace(/\/$/, "")}/${a.slug}`,
+        lastModified: a.updatedAt || now,
+      };
+    })
+    .filter((x): x is { path: string; lastModified: string } => x !== null);
+
+  return { pages, articles };
+}

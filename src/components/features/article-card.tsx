@@ -2,15 +2,17 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Article } from "@/types/payload";
-import { getPayloadURL, richTextToPlainText } from "@/lib/utils";
+import { cn, getPayloadURL, richTextToPlainText } from "@/lib/utils";
 
 /** Single article card used in listings (recommended articles, rubric pages). */
 export function ArticleCard({
   article,
   href,
+  className,
 }: {
   article: Article;
   href: string;
+  className?: string;
 }) {
   const articleText = richTextToPlainText(article.text);
   // `image` is a populated media object after enrichArticleImages (a numeric id before).
@@ -26,7 +28,10 @@ export function ArticleCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100/50 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] transition-all duration-500 transform hover:-translate-y-2"
+      className={cn(
+        "group flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100/50 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] transition-all duration-500 transform hover:-translate-y-2",
+        className,
+      )}
     >
       <div className="relative h-48 w-full overflow-hidden">
         {imageUrl ? (

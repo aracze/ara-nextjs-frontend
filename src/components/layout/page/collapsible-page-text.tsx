@@ -37,30 +37,38 @@ type Contributor = {
 export function CollapsiblePageTextWithContributor({
   textHtml,
   contributor,
+  collapsible = true,
 }: {
   textHtml: string;
   contributor?: Contributor | null;
+  /** Sbalování textu + „zobrazit více" — jen na stránkách „Místo k navštívení". */
+  collapsible?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [avatarSrc, setAvatarSrc] = useState(
     contributor?.avatarUrl || DEFAULT_AVATAR,
   );
-  const { previewHtml, shouldCollapse } = useMemo(
+  const { shouldCollapse: canCollapse } = useMemo(
     () => getPreviewHtml(textHtml),
     [textHtml],
   );
+  const shouldCollapse = collapsible && canCollapse;
 
   return (
     <div className="relative">
       <div
         className={cn(
-          "prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline",
+          "relative prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline",
           !isExpanded && shouldCollapse && "max-h-[250px] overflow-hidden",
         )}
       >
         <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
           {textHtml}
         </ReactMarkdown>
+        {/* Text mizí do bílé — naznačuje, že pokračuje dál. */}
+        {shouldCollapse && !isExpanded && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[50px] bg-gradient-to-b from-transparent to-white" />
+        )}
       </div>
 
       {shouldCollapse && !isExpanded && (
@@ -114,28 +122,26 @@ export function CollapsiblePageTextWithContributor({
             </div>
           )}
 
-          <div className="relative bottom-[35px] h-[30px] w-full bg-gradient-to-b from-white/[.12] via-white/[.89] to-white">
-            <button
-              type="button"
-              onClick={() => setIsExpanded(true)}
-              aria-expanded={isExpanded}
-              className="absolute left-0 right-0 top-[45px] mx-auto w-[120px] bg-white py-0 pl-[10px] pr-[5px] text-center text-[14px] font-bold leading-[19.5px] text-[#005580] shadow-[0_0_10px_5px_#fff]"
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            aria-expanded={isExpanded}
+            className="mx-auto block w-[130px] text-center text-[14px] font-bold leading-[19.5px] text-[#005580] hover:underline"
+          >
+            zobrazit více
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 10 6"
+              className="ml-[6px] inline-block h-[10px] w-[10px] align-middle"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              zobrazit více
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 10 6"
-                className="ml-[6px] inline-block h-[10px] w-[10px] align-middle"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.9"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M1 1l4 4 4-4" />
-              </svg>
-            </button>
-          </div>
+              <path d="M1 1l4 4 4-4" />
+            </svg>
+          </button>
 
           <div className="clear-both" />
         </div>

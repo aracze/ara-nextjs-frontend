@@ -76,6 +76,9 @@ export const Article: React.FC<ArticleProps> = async ({
           currentPageFullSlug={contextPage?.fullSlug ?? ""}
           currentPageCategory={contextPage?.category}
           isSubPlace={false}
+          hasPlaces={(rootPage.children?.docs?.length ?? 0) > 0}
+          hasArticles={(rootPage.articles?.length ?? 0) > 0}
+          activeSection="clanky"
         />
       )}
 

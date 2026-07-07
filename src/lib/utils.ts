@@ -17,6 +17,17 @@ export function getPayloadURL() {
   );
 }
 
+/**
+ * Public base URL of the site itself (not the Payload API) — used for absolute
+ * URLs in the sitemap, canonical links, etc. Nastav `NEXT_PUBLIC_SITE_URL` v env.
+ */
+export function getSiteURL() {
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://www.ara.cz").replace(
+    /\/$/,
+    "",
+  );
+}
+
 type RichTextRenderContext = {
   currencyCode?: string | null;
   exchangeRate?: number | null;

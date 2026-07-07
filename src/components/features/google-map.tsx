@@ -204,13 +204,29 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
   }, [markers, centerLat, centerLng, zoom]);
 
   useEffect(() => {
-    // Check if Google Maps is already loaded
-    if ((window as { google?: any }).google?.maps) {
-      setLoaded(true);
+    let cancelled = false;
+    const markReady = () => {
+      if (!cancelled) setLoaded(true);
+    };
+
+    // S `loading=async` je nutné knihovny doimportovat přes importLibrary — teprve pak
+    // jsou google.maps.Map / Marker / enums (MapTypeControlStyle…) skutečně k dispozici.
+    const importLibs = async () => {
+      const maps = (window as { google?: any }).google?.maps;
+      if (!maps?.importLibrary) return;
+      await Promise.all([
+        maps.importLibrary("maps"),
+        maps.importLibrary("marker"),
+      ]);
+      markReady();
+    };
+
+    // Jádro už načtené (Map k dispozici) → hotovo.
+    if ((window as { google?: any }).google?.maps?.Map) {
+      markReady();
       return;
     }
 
-    // Load Google Maps script
     if (!GOOGLE_MAPS_API_KEY) {
       console.warn("Google Maps API key is not set");
       return;
@@ -220,16 +236,27 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       'script[src*="maps.googleapis.com"]',
     );
     if (existingScript) {
-      existingScript.addEventListener("load", () => setLoaded(true));
-      return;
+      if ((window as { google?: any }).google?.maps?.importLibrary) {
+        importLibs();
+      } else {
+        existingScript.addEventListener("load", importLibs);
+      }
+      return () => {
+        cancelled = true;
+      };
     }
 
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=3`;
+    // `loading=async` = doporučený neblokující způsob načtení (Google best practice).
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=3&loading=async`;
     script.async = true;
     script.defer = true;
-    script.onload = () => setLoaded(true);
+    script.onload = importLibs;
     document.head.appendChild(script);
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
