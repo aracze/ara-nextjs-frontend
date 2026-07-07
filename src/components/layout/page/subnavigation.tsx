@@ -72,9 +72,7 @@ export const Subnavigation = ({
   // sub-page (e.g. Vstupní podmínky), link to the context page + hash so it navigates
   // to the Place (e.g. Chorvatsko) and scrolls to the section.
   const sectionHref = (hash: string) =>
-    !activeSection && currentPageFullSlug === contextFullSlug
-      ? `#${hash}`
-      : `${contextFullSlug}#${hash}`;
+    isContextActive ? `#${hash}` : `${contextFullSlug}#${hash}`;
   const itemClass = (active: boolean) =>
     `px-3 py-4 tracking-wide transition-colors border-b-2 ${
       active

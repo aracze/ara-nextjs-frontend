@@ -34,15 +34,25 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
     menuContext.isSubPlace,
   );
 
+  // Sekundární menu se nezobrazuje na rubrikách ani statických stránkách.
+  const showSubnavigation =
+    page.category !== PageCategory.Rubrika &&
+    page.category !== PageCategory.Staticka_stranka;
+
   // "Místa"/"Články" v sekundárním menu patří kontextovému místu (např. Chorvatsko),
-  // ne aktuální podstránce (např. Vstupní podmínky). Načteme proto data kontextové stránky.
-  const contextPage =
-    menuContext.contextFullSlug === page.fullSlug
-      ? page
-      : ((await fetchPageByFullSlug(menuContext.contextFullSlug)).data
-          .pages[0] ?? page);
-  const contextHasPlaces = (contextPage.children?.docs?.length ?? 0) > 0;
-  const contextHasArticles = (contextPage.articles?.length ?? 0) > 0;
+  // ne aktuální podstránce (Vstupní podmínky). Data kontextové stránky načítáme jen když
+  // se menu vůbec renderuje (jinak zbytečný fetch pro rubriky/statické stránky).
+  let contextHasPlaces = false;
+  let contextHasArticles = false;
+  if (showSubnavigation) {
+    const contextPage =
+      menuContext.contextFullSlug === page.fullSlug
+        ? page
+        : ((await fetchPageByFullSlug(menuContext.contextFullSlug)).data
+            .pages[0] ?? page);
+    contextHasPlaces = (contextPage.children?.docs?.length ?? 0) > 0;
+    contextHasArticles = (contextPage.articles?.length ?? 0) > 0;
+  }
 
   const effectiveCurrencyCode =
     page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
@@ -98,8 +108,7 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
         />
 
         {/* Sub-navigation bar style — not shown on rubric or static content pages */}
-        {page.category !== PageCategory.Rubrika &&
-          page.category !== PageCategory.Staticka_stranka && (
+        {showSubnavigation && (
             <Subnavigation
               contextTitle={menuContext.contextTitle}
               contextFullSlug={menuContext.contextFullSlug}

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import DOMPurify from "isomorphic-dompurify";
+import type { Article } from "@/types/payload";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -238,15 +239,7 @@ function richTextToHtmlInternal(
         const content = richTextToHtmlInternal(fields.content, context);
         if (!content.trim()) return "";
         // Promo box = placený/komerční odkaz → doplníme rel="sponsored".
-        const withSponsored = content
-          .replace(
-            /(<a\b[^>]*\brel=")([^"]*)"/g,
-            (_m, prefix, rel) =>
-              /\bsponsored\b/.test(rel)
-                ? `${prefix}${rel}"`
-                : `${prefix}${rel} sponsored"`,
-          )
-          .replace(/(<a\b(?![^>]*\brel=)[^>]*)>/g, '$1 rel="sponsored">');
+        const withSponsored = addRelToAnchors(content, "sponsored");
         return `<div class="article-promo">${withSponsored}</div>`;
       }
       if (fields?.blockType === "mapBlock") {
@@ -574,4 +567,50 @@ export function richTextToPlainText(value: unknown): string {
   visit(value);
 
   return texts.join(" ").replace(/\s+/g, " ").trim();
+}
+
+// ─── Sdílené odvozeniny pro článkové karty/seznamy (jedno místo pravdy) ──────
+
+/** Plain-text perex z rich-textu článku. */
+export function getArticleExcerpt(article: Article): string {
+  return richTextToPlainText(article.text);
+}
+
+/**
+ * URL náhledového obrázku článku. `featuredImage.image` je populovaný media objekt
+ * (po enrichArticleImages), před tím číselné id → v tom případě vrátíme null.
+ */
+export function getArticleImageUrl(article: Article): string | null {
+  const media = article.featuredImage?.image;
+  const rawUrl = media && typeof media === "object" ? media.url : null;
+  if (!rawUrl) return null;
+  return rawUrl.startsWith("/") ? `${getPayloadURL()}${rawUrl}` : rawUrl;
+}
+
+/** Odkaz na detail článku (pod rodičovskou stránkou, fallback /blog/<slug>). */
+export function getArticleHref(
+  article: Article,
+  parentFullSlug?: string,
+): string {
+  return parentFullSlug
+    ? `${parentFullSlug.replace(/\/$/, "")}/${article.slug}`
+    : `/blog/${article.slug}`;
+}
+
+/** Stabilní React key pro článek (documentId → slug → title+index). */
+export function getArticleKey(article: Article, index: number): string {
+  return article.documentId || article.slug || `${article.title}-${index}`;
+}
+
+/**
+ * Přidá `rel` token (např. "sponsored") do všech <a> v HTML řetězci — sjednocené
+ * na jednom místě místo inline regexů. Bez duplikace už přítomného tokenu.
+ */
+export function addRelToAnchors(html: string, token: string): string {
+  const hasToken = new RegExp(`\\b${token}\\b`);
+  return html
+    .replace(/(<a\b[^>]*\brel=")([^"]*)"/g, (_m, prefix, rel) =>
+      hasToken.test(rel) ? `${prefix}${rel}"` : `${prefix}${rel} ${token}"`,
+    )
+    .replace(/(<a\b(?![^>]*\brel=)[^>]*)>/g, `$1 rel="${token}">`);
 }

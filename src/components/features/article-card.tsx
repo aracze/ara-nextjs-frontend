@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Article } from "@/types/payload";
-import { cn, getPayloadURL, richTextToPlainText } from "@/lib/utils";
+import { cn, getArticleExcerpt, getArticleImageUrl } from "@/lib/utils";
 
 /** Single article card used in listings (recommended articles, rubric pages). */
 export function ArticleCard({
@@ -14,16 +14,8 @@ export function ArticleCard({
   href: string;
   className?: string;
 }) {
-  const articleText = richTextToPlainText(article.text);
-  // `image` is a populated media object after enrichArticleImages (a numeric id before).
-  const media = article.featuredImage?.image;
-  const rawImageUrl =
-    media && typeof media === "object" ? media.url : null;
-  const imageUrl = rawImageUrl
-    ? rawImageUrl.startsWith("/")
-      ? `${getPayloadURL()}${rawImageUrl}`
-      : rawImageUrl
-    : null;
+  const articleText = getArticleExcerpt(article);
+  const imageUrl = getArticleImageUrl(article);
 
   return (
     <Link

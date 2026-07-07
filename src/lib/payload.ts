@@ -298,7 +298,10 @@ export async function fetchSitemapEntries(): Promise<{
         pagination: "false",
       }),
       { next: { tags: ["sitemap"] } },
-    ).catch(() => ({ docs: [] as SitemapPage[] })),
+    ).catch((err) => {
+      console.error("[sitemap] /api/pages fetch failed:", err);
+      return { docs: [] as SitemapPage[] };
+    }),
     fetchJSON<PayloadDocsResponse<SitemapArticle>>(
       buildPayloadUrl("/api/articles", {
         depth: "1",
@@ -306,7 +309,10 @@ export async function fetchSitemapEntries(): Promise<{
         pagination: "false",
       }),
       { next: { tags: ["sitemap"] } },
-    ).catch(() => ({ docs: [] as SitemapArticle[] })),
+    ).catch((err) => {
+      console.error("[sitemap] /api/articles fetch failed:", err);
+      return { docs: [] as SitemapArticle[] };
+    }),
   ]);
 
   const now = new Date().toISOString();

@@ -5,7 +5,13 @@ import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Article } from "@/types/payload";
-import { cn, getPayloadURL, richTextToPlainText } from "@/lib/utils";
+import {
+  cn,
+  getArticleExcerpt,
+  getArticleHref,
+  getArticleImageUrl,
+  getArticleKey,
+} from "@/lib/utils";
 import { ArticleAd, AdSenseScript } from "./article-ad";
 
 // Klasický (vertikální) layout článků — podobný původnímu webu: články pod sebou
@@ -61,26 +67,13 @@ export const ArticlesListClassic = ({
               přebytek schováme přes `hidden` (obrázky se načtou až po „zobrazit další"). */}
           <div className="flex-1 flex flex-col gap-8">
             {articles.map((article, index) => {
-              const href = parentFullSlug
-                ? `${parentFullSlug.replace(/\/$/, "")}/${article.slug}`
-                : `/blog/${article.slug}`;
-              const articleKey =
-                article.documentId ||
-                article.slug ||
-                `${article.title}-${index}`;
-              const excerpt = richTextToPlainText(article.text);
-              const media = article.featuredImage?.image;
-              const rawUrl =
-                media && typeof media === "object" ? media.url : null;
-              const imageUrl = rawUrl
-                ? rawUrl.startsWith("/")
-                  ? `${getPayloadURL()}${rawUrl}`
-                  : rawUrl
-                : null;
+              const href = getArticleHref(article, parentFullSlug);
+              const excerpt = getArticleExcerpt(article);
+              const imageUrl = getArticleImageUrl(article);
 
               return (
                 <Link
-                  key={articleKey}
+                  key={getArticleKey(article, index)}
                   href={href}
                   className={cn(
                     "group flex flex-col sm:flex-row gap-6 items-stretch bg-white rounded-3xl border border-gray-100/50 p-5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] transition-all duration-500 transform hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)]",

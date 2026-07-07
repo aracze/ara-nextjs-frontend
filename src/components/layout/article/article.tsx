@@ -56,6 +56,17 @@ export const Article: React.FC<ArticleProps> = async ({
   }
   const authorBio = author?.description || null;
 
+  // Sdílený avatar — stejné markup pro variantu s odkazem i bez, ať se needuplikuje.
+  const authorAvatar = (
+    <Image
+      src={avatarUrl}
+      alt={authorName ?? ""}
+      width={45}
+      height={45}
+      className="h-[45px] w-[45px] shrink-0 rounded-full border-[3px] border-white object-cover shadow-[0_3px_5px_rgba(0,0,0,0.3)]"
+    />
+  );
+
   return (
     <div className="bg-white min-h-screen">
       {/* Article Header / Hero */}
@@ -105,22 +116,10 @@ export const Article: React.FC<ArticleProps> = async ({
             <div className="mt-8 flex items-start gap-4 border-t border-[#dadbdc] pt-5 pb-2.5">
               {profileHref ? (
                 <Link href={profileHref} className="shrink-0">
-                  <Image
-                    src={avatarUrl}
-                    alt={authorName}
-                    width={45}
-                    height={45}
-                    className="h-[45px] w-[45px] rounded-full border-[3px] border-white object-cover shadow-[0_3px_5px_rgba(0,0,0,0.3)]"
-                  />
+                  {authorAvatar}
                 </Link>
               ) : (
-                <Image
-                  src={avatarUrl}
-                  alt={authorName}
-                  width={45}
-                  height={45}
-                  className="h-[45px] w-[45px] shrink-0 rounded-full border-[3px] border-white object-cover shadow-[0_3px_5px_rgba(0,0,0,0.3)]"
-                />
+                authorAvatar
               )}
               <div className="min-w-0">
                 {profileHref ? (

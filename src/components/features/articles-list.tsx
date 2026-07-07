@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Article } from "@/types/payload";
+import { getArticleHref, getArticleKey } from "@/lib/utils";
 import { ArticleCard } from "./article-card";
 
 // Kolik článků přibude na první zobrazení i po každém kliknutí na „Zobrazit další".
@@ -41,17 +42,11 @@ export const ArticlesList = ({
               schováme přes `hidden` (display:none → jejich obrázky se ani nenačtou,
               dokud uživatel neklikne na „zobrazit další"). */}
           {articles.map((article, index) => {
-            const href = parentFullSlug
-              ? `${parentFullSlug.replace(/\/$/, "")}/${article.slug}`
-              : `/blog/${article.slug}`;
-            const articleKey =
-              article.documentId || article.slug || `${article.title}-${index}`;
-
             return (
               <ArticleCard
-                key={articleKey}
+                key={getArticleKey(article, index)}
                 article={article}
-                href={href}
+                href={getArticleHref(article, parentFullSlug)}
                 className={index >= visibleCount ? "hidden" : undefined}
               />
             );
