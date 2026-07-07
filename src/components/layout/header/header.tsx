@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Page, ImageLink } from "@/types/payload";
+import { Page, ImageLink, PageCategory } from "@/types/payload";
 import Search from "@/components/features/search/search";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -37,6 +37,11 @@ export function Header({
   const activePage = pages?.find((p) => String(p.id) === activeDropdown);
 
   const CONTINENT_ORDER = ["Evropa", "Amerika", "Asie", "Afrika", "Austrálie"];
+
+  // Main nav lists only top-level destinations (category "Místo k navštívení").
+  const navPages = (pages || []).filter(
+    (p) => p.category === PageCategory.Misto_k_navstiveni,
+  );
 
   return (
     <header
@@ -88,7 +93,7 @@ export function Header({
           )}
 
           <div className="hidden md:flex items-center gap-0 h-full text-white/90 font-semibold">
-            {[...(pages || [])]
+            {[...navPages]
               .sort((a, b) => {
                 const indexA = CONTINENT_ORDER.indexOf(a.title);
                 const indexB = CONTINENT_ORDER.indexOf(b.title);
@@ -128,9 +133,12 @@ export function Header({
 
           <div className="ml-auto flex items-center gap-4">
             <Search />
-            <button className="hidden lg:block px-5 py-1.5 border-2 border-white/50 rounded-full text-white text-[13px] font-bold hover:bg-white hover:text-[#215491] transition-all uppercase tracking-wider font-heading whitespace-nowrap">
+            <Link
+              href="/rady-na-cestu"
+              className="hidden lg:block px-5 py-1.5 border-2 border-white/50 rounded-full text-white text-[13px] font-bold hover:bg-white hover:text-[#215491] transition-all uppercase tracking-wider font-heading whitespace-nowrap"
+            >
               Rady na cestu
-            </button>
+            </Link>
           </div>
         </div>
       </nav>

@@ -49,6 +49,8 @@ export const Subnavigation = ({
   currentPageCategory,
   isSubPlace,
   hasPlaces,
+  hasArticles,
+  activeSection,
 }: {
   contextTitle: string;
   contextFullSlug: string;
@@ -58,8 +60,25 @@ export const Subnavigation = ({
   currentPageCategory?: PageCategory;
   isSubPlace: boolean;
   hasPlaces?: boolean;
+  hasArticles?: boolean;
+  /** Zvýrazní kotevní položku „Místa"/„Články" místo kontextu — použito na stránce článku. */
+  activeSection?: "mista" | "clanky";
 }) => {
-  const isContextActive = currentPageFullSlug === contextFullSlug;
+  // Když jsme na článku (activeSection nastaveno), nezvýrazňujeme kontext (Chorvatsko),
+  // ale příslušnou sekci („Články").
+  const isContextActive = !activeSection && currentPageFullSlug === contextFullSlug;
+
+  // "Místa"/"Články" scroll to sections that live on the context page. When we're on a
+  // sub-page (e.g. Vstupní podmínky), link to the context page + hash so it navigates
+  // to the Place (e.g. Chorvatsko) and scrolls to the section.
+  const sectionHref = (hash: string) =>
+    isContextActive ? `#${hash}` : `${contextFullSlug}#${hash}`;
+  const itemClass = (active: boolean) =>
+    `px-3 py-4 tracking-wide transition-colors border-b-2 ${
+      active
+        ? "text-[#287bbb] border-[#287bbb] font-bold"
+        : "text-gray-800 border-transparent hover:text-[#287bbb]"
+    }`;
 
   // Filter out hidden categories (Places, Tourist destinations) from menu
   const visibleChildren = pageChildren?.filter((child) => {
@@ -122,15 +141,20 @@ export const Subnavigation = ({
             {contextTitle}
           </Link>
 
-          {/* Anchor link to "Co vidět" section if the page has places */}
-          {hasPlaces && (
-            <a
-              href="#mista"
-              className="px-3 py-4 tracking-wide transition-colors border-b-2 text-gray-800 border-transparent hover:text-[#287bbb]"
-            >
-              Místa
-            </a>
-          )}
+          {/* Anchor to the context place's "Co vidět" section (on the context page). */}
+          {hasPlaces &&
+            (isContextActive ? (
+              <a href="#mista" className={itemClass(activeSection === "mista")}>
+                Místa
+              </a>
+            ) : (
+              <Link
+                href={sectionHref("mista")}
+                className={itemClass(activeSection === "mista")}
+              >
+                Místa
+              </Link>
+            ))}
 
           {/* Menu items from the context page's children */}
           {sortedChildren.map((pageChild) => {
@@ -165,6 +189,22 @@ export const Subnavigation = ({
               Praktické informace
             </Link>
           )}
+
+          {/* Anchor to the context place's "Články a cestopisy" section — always last,
+              only if the context place has articles. */}
+          {hasArticles &&
+            (isContextActive ? (
+              <a href="#clanky" className={itemClass(activeSection === "clanky")}>
+                Články
+              </a>
+            ) : (
+              <Link
+                href={sectionHref("clanky")}
+                className={itemClass(activeSection === "clanky")}
+              >
+                Články
+              </Link>
+            ))}
         </div>
       </div>
     </div>

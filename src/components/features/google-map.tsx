@@ -65,6 +65,107 @@ function buildInfoWindowContent(marker: MapMarker): string {
   </div>`;
 }
 
+// Minimální typování `window.google.maps` pro bootstrap/loader (bez @types/google.maps).
+// Index signatura pokrývá dynamický `callback` klíč, který si Google na `maps` zapisuje.
+interface GoogleMapsApi {
+  importLibrary?: (name: string) => Promise<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+interface WindowWithGoogle extends Window {
+  google?: { maps?: GoogleMapsApi };
+}
+const getWindowWithGoogle = (): WindowWithGoogle => window as WindowWithGoogle;
+
+// Jednorázový (singleton) loader Maps JS API. Skript se vloží do stránky nejvýš
+// jednou a případné další mounty (včetně React StrictMode double-mountu ve vývoji)
+// čekají na tentýž Promise — tím odpadá souběh, kdy „vyhrála" odmountovaná closure
+// a mapa se nikdy nevykreslila.
+let mapsReadyPromise: Promise<void> | null = null;
+
+// Nainstaluje oficiální Google „bootstrap loader": definuje `google.maps.importLibrary`
+// SYNCHRONNĚ jako stub, který si sám (jednou) dotáhne skript API přes `callback`.
+// Prosté `<script src=…loading=async>` + čekání na `load` totiž nezaručuje, že už je
+// `importLibrary` k dispozici (proto se mapa občas vůbec nenačetla).
+function installMapsBootstrap(key: string): void {
+  const win = getWindowWithGoogle();
+  const google = win.google ?? {};
+  win.google = google;
+  const maps: GoogleMapsApi = google.maps ?? {};
+  google.maps = maps;
+  if (maps.importLibrary) return;
+
+  const requested = new Set<string>();
+  const CALLBACK = "__ib__";
+  let scriptLoad: Promise<void> | null = null;
+
+  const ensureScript = () =>
+    (scriptLoad ??= new Promise<void>((resolve, reject) => {
+      // Sestavení URL odložíme o mikrotask, aby se do jednoho requestu stihly
+      // zaregistrovat všechny synchronně požadované knihovny (maps + marker).
+      Promise.resolve().then(() => {
+        const params = new URLSearchParams({
+          key,
+          v: "weekly",
+          libraries: [...requested].join(","),
+          callback: `google.maps.${CALLBACK}`,
+          loading: "async",
+        });
+        maps[CALLBACK] = resolve;
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?${params}`;
+        script.nonce =
+          document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce ??
+          "";
+        script.onerror = () => {
+          // Vynulujeme cache i vložený tag, ať `ensureScript()` při dalším pokusu
+          // (po resetu mapsReadyPromise) skript znovu vloží a recovery projde.
+          scriptLoad = null;
+          script.remove();
+          reject(new Error("Google Maps script se nepodařilo načíst"));
+        };
+        document.head.append(script);
+      });
+    }));
+
+  // Po načtení API stub přepíše sám Google skutečnou implementací → `then` níže
+  // pak volá tu pravou `importLibrary`.
+  maps.importLibrary = (name: string) => {
+    requested.add(name);
+    // Po načtení API Google přepíše `maps.importLibrary` skutečnou implementací.
+    return ensureScript().then(() => maps.importLibrary!(name));
+  };
+}
+
+function loadGoogleMaps(): Promise<void> {
+  if (mapsReadyPromise) return mapsReadyPromise;
+
+  mapsReadyPromise = (async () => {
+    if (!getWindowWithGoogle().google?.maps?.importLibrary) {
+      if (!GOOGLE_MAPS_API_KEY) {
+        throw new Error("Google Maps API key is not set");
+      }
+      installMapsBootstrap(GOOGLE_MAPS_API_KEY);
+    }
+    // S `loading=async` je nutné knihovny doimportovat, teprve pak jsou
+    // google.maps.Map / Marker / enumy (MapTypeControlStyle…) k dispozici.
+    const maps = getWindowWithGoogle().google?.maps;
+    if (!maps?.importLibrary) {
+      throw new Error("Google Maps: importLibrary není k dispozici");
+    }
+    await Promise.all([
+      maps.importLibrary("maps"),
+      maps.importLibrary("marker"),
+    ]);
+  })();
+
+  // Po chybě umožníme příští pokus (transientní výpadek sítě apod.).
+  mapsReadyPromise.catch(() => {
+    mapsReadyPromise = null;
+  });
+
+  return mapsReadyPromise;
+}
+
 export const GoogleMap: React.FC<GoogleMapProps> = ({
   markers,
   centerLat,
@@ -204,32 +305,17 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
   }, [markers, centerLat, centerLng, zoom]);
 
   useEffect(() => {
-    // Check if Google Maps is already loaded
-    if ((window as { google?: any }).google?.maps) {
-      setLoaded(true);
-      return;
-    }
-
-    // Load Google Maps script
-    if (!GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key is not set");
-      return;
-    }
-
-    const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com"]',
-    );
-    if (existingScript) {
-      existingScript.addEventListener("load", () => setLoaded(true));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=3`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setLoaded(true);
-    document.head.appendChild(script);
+    let cancelled = false;
+    loadGoogleMaps()
+      .then(() => {
+        if (!cancelled) setLoaded(true);
+      })
+      .catch((err) =>
+        console.warn("[GoogleMap] load error:", err?.message ?? err),
+      );
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

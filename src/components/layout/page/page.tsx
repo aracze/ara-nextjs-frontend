@@ -1,5 +1,6 @@
 import { Page as PayloadPage, PageCategory } from "@/types/payload";
 import { ArticlesList } from "@/components/features/articles-list";
+import { ArticlesListClassic } from "@/components/features/articles-list-classic";
 import { HeroSection } from "./hero-section";
 import { Subnavigation } from "./subnavigation";
 import { MainContent } from "./main-content";
@@ -32,6 +33,26 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
     safeRootPage,
     menuContext.isSubPlace,
   );
+
+  // Sekundární menu se nezobrazuje na rubrikách ani statických stránkách.
+  const showSubnavigation =
+    page.category !== PageCategory.Rubrika &&
+    page.category !== PageCategory.Staticka_stranka;
+
+  // "Místa"/"Články" v sekundárním menu patří kontextovému místu (např. Chorvatsko),
+  // ne aktuální podstránce (Vstupní podmínky). Data kontextové stránky načítáme jen když
+  // se menu vůbec renderuje (jinak zbytečný fetch pro rubriky/statické stránky).
+  let contextHasPlaces = false;
+  let contextHasArticles = false;
+  if (showSubnavigation) {
+    const contextPage =
+      menuContext.contextFullSlug === page.fullSlug
+        ? page
+        : ((await fetchPageByFullSlug(menuContext.contextFullSlug)).data
+            .pages[0] ?? page);
+    contextHasPlaces = (contextPage.children?.docs?.length ?? 0) > 0;
+    contextHasArticles = (contextPage.articles?.length ?? 0) > 0;
+  }
 
   const effectiveCurrencyCode =
     page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
@@ -86,17 +107,20 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           breadcrumbs={breadcrumbs}
         />
 
-        {/* Sub-navigation bar style */}
-        <Subnavigation
-          contextTitle={menuContext.contextTitle}
-          contextFullSlug={menuContext.contextFullSlug}
-          pageChildren={menuContext.menuChildren}
-          rootChildren={practicalInfoSourceChildren}
-          currentPageFullSlug={page.fullSlug}
-          currentPageCategory={page.category}
-          isSubPlace={menuContext.isSubPlace}
-          hasPlaces={pageChildren.length > 0}
-        />
+        {/* Sub-navigation bar style — not shown on rubric or static content pages */}
+        {showSubnavigation && (
+            <Subnavigation
+              contextTitle={menuContext.contextTitle}
+              contextFullSlug={menuContext.contextFullSlug}
+              pageChildren={menuContext.menuChildren}
+              rootChildren={practicalInfoSourceChildren}
+              currentPageFullSlug={page.fullSlug}
+              currentPageCategory={page.category}
+              isSubPlace={menuContext.isSubPlace}
+              hasPlaces={contextHasPlaces}
+              hasArticles={contextHasArticles}
+            />
+          )}
 
         {/* 2. CONTENT AREA */}
         <MainContent
@@ -123,12 +147,21 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
           />
         )}
 
-        {page.articles?.length > 0 && (
-          <ArticlesList
-            articles={page.articles}
-            parentFullSlug={page.fullSlug}
-          />
-        )}
+        {/* Rubriky používají mřížkový layout, ostatní stránky (místa k navštívení)
+            klasický vertikální seznam s reklamním sloupcem. */}
+        {page.articles?.length > 0 &&
+          (page.category === PageCategory.Rubrika ? (
+            <ArticlesList
+              articles={page.articles}
+              parentFullSlug={page.fullSlug}
+            />
+          ) : (
+            <ArticlesListClassic
+              articles={page.articles}
+              parentFullSlug={page.fullSlug}
+              destinationLocative={page.detail?.locative}
+            />
+          ))}
       </article>
     </div>
   );

@@ -124,6 +124,7 @@ export const MainContent = ({
         <CollapsiblePageTextWithContributor
           textHtml={textHtml}
           contributor={showAktualniInfo ? contributor : null}
+          collapsible={pageCategory === PageCategory.Misto_k_navstiveni}
         />
       </div>
 

@@ -143,6 +143,37 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
   };
 }
 
+/**
+ * Article cards come from a page's `primaryArticles`/`secondaryArticles` join, where
+ * Payload returns `featuredImage.image` only as a numeric id (join fields don't deep-populate
+ * uploads, regardless of depth). Resolve those ids to URLs so listing cards show thumbnails.
+ */
+async function enrichArticleImages(articles: Article[]): Promise<Article[]> {
+  if (!articles?.length) return articles ?? [];
+
+  const ids = articles
+    .map((a) => a.featuredImage?.image)
+    .filter((img): img is number => typeof img === "number");
+
+  if (ids.length === 0) return articles;
+
+  const urlMap = await fetchMediaUrlsByIds([...new Set(ids)]);
+
+  return articles.map((a) => {
+    const img = a.featuredImage?.image;
+    if (a.featuredImage && typeof img === "number" && urlMap.has(img)) {
+      return {
+        ...a,
+        featuredImage: {
+          ...a.featuredImage,
+          image: { url: urlMap.get(img)!, alternativeText: null },
+        },
+      };
+    }
+    return a;
+  });
+}
+
 async function fetchPageByFullSlugPayload(
   fullSlug: string,
 ): Promise<{ data: { pages: Page[] } }> {
@@ -157,6 +188,10 @@ async function fetchPageByFullSlugPayload(
   const match = response.docs?.[0]
     ? normalizePage(response.docs[0])
     : undefined;
+
+  if (match) {
+    match.articles = await enrichArticleImages(match.articles);
+  }
 
   return {
     data: {
@@ -238,4 +273,68 @@ export async function fetchMediaUrlsByIds(
     if (doc.url) map.set(doc.id, doc.url);
   }
   return map;
+}
+
+/**
+ * All indexable page & article paths for the sitemap. Pages use `fullSlug`
+ * (už zohledňuje "include in child URL paths"), články `mainPage.fullSlug + slug`.
+ */
+export async function fetchSitemapEntries(): Promise<{
+  pages: { path: string; lastModified: string }[];
+  articles: { path: string; lastModified: string }[];
+}> {
+  type SitemapPage = { fullSlug?: string | null; updatedAt?: string | null };
+  type SitemapArticle = {
+    slug?: string | null;
+    updatedAt?: string | null;
+    mainPage?: { fullSlug?: string | null } | number | null;
+  };
+
+  const [pagesRes, articlesRes] = await Promise.all([
+    fetchJSON<PayloadDocsResponse<SitemapPage>>(
+      buildPayloadUrl("/api/pages", {
+        depth: "0",
+        limit: "0",
+        pagination: "false",
+      }),
+      { next: { tags: ["sitemap"] } },
+    ).catch((err) => {
+      console.error("[sitemap] /api/pages fetch failed:", err);
+      return { docs: [] as SitemapPage[] };
+    }),
+    fetchJSON<PayloadDocsResponse<SitemapArticle>>(
+      buildPayloadUrl("/api/articles", {
+        depth: "1",
+        limit: "0",
+        pagination: "false",
+      }),
+      { next: { tags: ["sitemap"] } },
+    ).catch((err) => {
+      console.error("[sitemap] /api/articles fetch failed:", err);
+      return { docs: [] as SitemapArticle[] };
+    }),
+  ]);
+
+  const now = new Date().toISOString();
+
+  const pages = (pagesRes.docs || [])
+    .filter((p) => typeof p.fullSlug === "string" && p.fullSlug)
+    .map((p) => ({ path: p.fullSlug as string, lastModified: p.updatedAt || now }));
+
+  const articles = (articlesRes.docs || [])
+    .map((a) => {
+      const mp = a.mainPage;
+      const parent =
+        mp && typeof mp === "object" && typeof mp.fullSlug === "string"
+          ? mp.fullSlug
+          : null;
+      if (!parent || !a.slug) return null;
+      return {
+        path: `${parent.replace(/\/$/, "")}/${a.slug}`,
+        lastModified: a.updatedAt || now,
+      };
+    })
+    .filter((x): x is { path: string; lastModified: string } => x !== null);
+
+  return { pages, articles };
 }
