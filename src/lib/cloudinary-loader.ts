@@ -1,9 +1,18 @@
 /**
+ * True, pokud jde o Cloudinary URL, kterou umíme transformovat (obsahuje
+ * `/upload/`). Ostatní zdroje (lokální /assets, Payload uploads) transformovat
+ * nejdou — u nich nemá `next/image` optimalizace přes tento loader smysl.
+ */
+export function isCloudinary(src: string): boolean {
+  return src.includes("res.cloudinary.com") && src.includes("/upload/");
+}
+
+/**
  * Vloží Cloudinary transformaci hned za `/upload/`. Ne-Cloudinary zdroje
  * (lokální /assets, Payload uploads) vrací beze změny — nedají se transformovat.
  */
 export function cloudinaryVariant(src: string, transform: string): string {
-  if (!src.includes("res.cloudinary.com") || !src.includes("/upload/")) {
+  if (!isCloudinary(src)) {
     return src;
   }
   return src.replace("/upload/", `/upload/${transform}/`);

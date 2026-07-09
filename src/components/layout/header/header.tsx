@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ImageLink, PageCategory } from "@/types/payload";
+import { isCloudinary } from "@/lib/cloudinary-loader";
 import Search from "@/components/features/search/search";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -100,6 +101,7 @@ export function Header({
                     width={132}
                     height={26}
                     className="h-[26px] w-auto object-contain"
+                    unoptimized={!isCloudinary(String(logo.image.url))}
                   />
                 )
               )}

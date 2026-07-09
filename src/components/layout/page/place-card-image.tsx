@@ -1,32 +1,30 @@
-import React from "react";
-import { cloudinaryVariant } from "@/lib/cloudinary-loader";
+import Image from "next/image";
+import { cloudinaryVariant, isCloudinary } from "@/lib/cloudinary-loader";
 
 /**
- * Obrázek karty místa s ořezem podle zařízení (art direction přes <picture>).
+ * Obrázek karty místa s ořezem podle zařízení (art direction).
  *
  * Karta má pevnou výšku 280 px, ale proměnlivou šířku, takže její tvar se mění:
  * pod 1024 px (mobil/tablet) je na šířku, na desktopu je vedle mapy na výšku,
  * bez mapy skoro čtvercová. Pro každý případ proto Cloudinary ořízne jiný poměr
  * (`c_fill,g_auto`), aby se nestahovaly pixely, které `object-cover` stejně ořízne.
  *
- * Šířky se nabízejí jako plynulá škála (`w`-descriptory + `sizes`), ne jen kroky
- * 1×/2×. Displeje s neceločíselným zvětšením (125 %, 150 %) tak stáhnou přesně
- * potřebnou velikost místo skoku na dvojnásobek.
+ * Art direction řešíme dvěma `next/image` variantami přepínanými `hidden lg:block`
+ * / `lg:hidden` (místo `<picture>`), aby obrázky procházely optimalizací Next.js.
+ * Každá varianta má vlastní `loader` s jiným ořezem; šířky dopočítá `next/image`
+ * z `sizes`, takže displeje s neceločíselným zvětšením (125 %, 150 %) stáhnou
+ * přesně potřebnou velikost místo skoku na dvojnásobek.
  *
- * Ne-Cloudinary zdroje (dev/localhost) se nedají ořezávat → poslouží originál.
+ * Ne-Cloudinary zdroje (dev/localhost, Payload) se nedají ořezávat → `unoptimized`,
+ * aby `next/image` nenabízel duplicitní srcset kandidáty se stejnou URL.
  */
 
 const BASE = "f_auto,q_auto";
 
-// Desktop kryje kartu ~207 px (vedle mapy) i ~278 px (bez mapy), včetně retiny.
-const DESKTOP_WIDTHS = [180, 220, 280, 340, 420, 520, 620];
-// Mobil (100 vw) i tablet (50 vw) po celé šíři obrazovky.
-const SMALL_WIDTHS = [320, 420, 520, 640, 768, 900];
-
-function srcSet(src: string, crop: string, widths: number[]): string {
-  return widths
-    .map((w) => `${cloudinaryVariant(src, `${BASE},${crop},w_${w}`)} ${w}w`)
-    .join(", ");
+/** `next/image` loader s pevným Cloudinary ořezem (poměr stran dle varianty). */
+function cropLoader(crop: string) {
+  return ({ src, width }: { src: string; width: number }) =>
+    cloudinaryVariant(src, `${BASE},${crop},w_${width}`);
 }
 
 interface PlaceCardImageProps {
@@ -46,25 +44,30 @@ export function PlaceCardImage({
   // Desktop: vedle mapy portrét (~207×280 → 5:7), jinak skoro čtverec (~278×280 → 1:1)
   const desktopAr = hasMap ? "5:7" : "1:1";
   const desktopSizes = hasMap ? "210px" : "280px";
+  const unoptimized = !isCloudinary(src);
 
   return (
-    <picture>
+    <>
       {/* Desktop (≥1024 px) */}
-      <source
-        media="(min-width: 1024px)"
-        srcSet={srcSet(src, `c_fill,g_auto,ar_${desktopAr}`, DESKTOP_WIDTHS)}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        loader={cropLoader(`c_fill,g_auto,ar_${desktopAr}`)}
         sizes={desktopSizes}
+        unoptimized={unoptimized}
+        className={`hidden lg:block ${className ?? ""}`}
       />
       {/* Mobil + tablet (<1024 px): karta je na šířku */}
-      <img
-        src={cloudinaryVariant(src, `${BASE},c_fill,g_auto,ar_3:2,w_640`)}
-        srcSet={srcSet(src, "c_fill,g_auto,ar_3:2", SMALL_WIDTHS)}
-        sizes="(min-width: 640px) 50vw, 100vw"
+      <Image
+        src={src}
         alt={alt}
-        loading="lazy"
-        decoding="async"
-        className={className}
+        fill
+        loader={cropLoader("c_fill,g_auto,ar_3:2")}
+        sizes="(min-width: 640px) 50vw, 100vw"
+        unoptimized={unoptimized}
+        className={`lg:hidden ${className ?? ""}`}
       />
-    </picture>
+    </>
   );
 }

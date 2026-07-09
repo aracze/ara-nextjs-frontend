@@ -3,6 +3,7 @@ import Image from "next/image";
 import { fetchFooter } from "@/lib/payload";
 import { ImageLink } from "@/types/payload";
 import { richTextToHtml } from "@/lib/utils";
+import { isCloudinary } from "@/lib/cloudinary-loader";
 
 import DOMPurify from "isomorphic-dompurify";
 
@@ -27,19 +28,21 @@ function FooterLogo({ logo }: { logo: ImageLink }) {
   }
 
   if (logo.image?.url) {
+    const logoUrl = String(logo.image.url);
     return (
       <Link
         href={logo.link?.href ?? "/"}
         className="flex items-center shrink-0"
       >
         <Image
-          src={String(logo.image.url)}
+          src={logoUrl}
           alt={
             logo.image.alternativeText ?? "Ara.cz – Cestovní průvodce po světě"
           }
           height={23}
           width={80}
           className="h-[23px] w-auto object-contain"
+          unoptimized={!isCloudinary(logoUrl)}
         />
       </Link>
     );

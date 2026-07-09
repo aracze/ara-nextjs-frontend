@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { isCloudinary } from "@/lib/cloudinary-loader";
 
 interface ExpandableTouristPointProps {
   id: string | number;
@@ -46,6 +47,7 @@ export function ExpandableTouristPoint({
               fill
               className="object-cover transition-transform duration-700 hover:scale-[1.03]"
               sizes="(max-width: 1024px) 100vw, 56vw"
+              unoptimized={!isCloudinary(imageUrl)}
             />
           </div>
         </Link>

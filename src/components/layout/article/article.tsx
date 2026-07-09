@@ -4,6 +4,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import { Article as ArticleType } from "@/types/payload";
 import { getPayloadURL, richTextToHtml } from "@/lib/utils";
+import { isCloudinary } from "@/lib/cloudinary-loader";
 import Link from "next/link";
 import Image from "next/image";
 import { fetchPageByFullSlug } from "@/lib/payload";
@@ -64,6 +65,7 @@ export const Article: React.FC<ArticleProps> = async ({
       width={45}
       height={45}
       className="h-[45px] w-[45px] shrink-0 rounded-full border-[3px] border-white object-cover shadow-[0_3px_5px_rgba(0,0,0,0.3)]"
+      unoptimized={!isCloudinary(avatarUrl)}
     />
   );
 

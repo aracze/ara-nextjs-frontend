@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Article } from "@/types/payload";
 import { cn, getArticleExcerpt, getArticleImageUrl } from "@/lib/utils";
+import { isCloudinary } from "@/lib/cloudinary-loader";
 
 /** Single article card used in listings (recommended articles, rubric pages). */
 export function ArticleCard({
@@ -33,6 +34,7 @@ export function ArticleCard({
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            unoptimized={!isCloudinary(imageUrl)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#1a3f6c]/5 to-[#1a3f6c]/10 flex items-center justify-center">

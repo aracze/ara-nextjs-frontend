@@ -1,3 +1,5 @@
+# Ara Next.js Frontend
+
 @AGENTS.md
 
 ## Legacy Grails project (migration source)

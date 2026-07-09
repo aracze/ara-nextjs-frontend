@@ -12,6 +12,7 @@ import {
   getArticleImageUrl,
   getArticleKey,
 } from "@/lib/utils";
+import { isCloudinary } from "@/lib/cloudinary-loader";
 import { ArticleAd, AdSenseScript } from "./article-ad";
 
 // Klasický (vertikální) layout článků — podobný původnímu webu: články pod sebou
@@ -100,6 +101,7 @@ export const ArticlesListClassic = ({
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                         sizes="(max-width: 640px) 100vw, 280px"
+                        unoptimized={!isCloudinary(imageUrl)}
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#1a3f6c]/5 to-[#1a3f6c]/10 flex items-center justify-center">
