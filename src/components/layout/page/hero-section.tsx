@@ -24,7 +24,7 @@ export const HeroSection = ({
   breadcrumbs,
 }: HeroSectionProps) => {
   return (
-    <section className="relative w-full h-[350px] bg-[#3b444f]">
+    <section className="relative w-full h-[315px] bg-[#3b444f]">
       {/* Cover Image Background with its own overflow clipping */}
       <div className="absolute inset-0 overflow-hidden">
         <StaticHeroImage imageUrl={imageUrl} styleCss={styleCss} />
@@ -35,7 +35,7 @@ export const HeroSection = ({
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav
             aria-label="Breadcrumb navigation"
-            className="mb-4 flex items-center gap-2 -translate-y-[20px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
+            className="mb-2 flex items-center gap-2 -translate-y-[20px] bg-white/90 backdrop-blur-md border border-white/20 rounded-full px-5 py-1.5 shadow-sm"
           >
             <ol className="flex items-center gap-1.5 list-none p-0 m-0">
               {breadcrumbs.map((bc, idx) => {
@@ -66,7 +66,7 @@ export const HeroSection = ({
             </ol>
           </nav>
         )}
-        <h1 className="-translate-y-[16px] text-[42px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)]">
+        <h1 className="-translate-y-[16px] text-[40px] font-semibold text-white text-center tracking-normal [text-shadow:1px_1px_1px_rgba(0,0,0,0.5)]">
           {title}
         </h1>
         <div className="-translate-y-[12px] w-[30px] h-px bg-[#D7E1EF] rounded-full mx-auto"></div>

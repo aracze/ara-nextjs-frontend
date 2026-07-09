@@ -94,9 +94,9 @@ export const Article: React.FC<ArticleProps> = async ({
       )}
 
       {/* Article Content + side advertisement (two-column on desktop) */}
-      <div className="max-w-7xl mx-auto px-4 py-16 md:py-8 flex flex-col items-stretch lg:flex-row gap-8 lg:gap-10">
-        <main className="flex-1 min-w-0 lg:max-w-4xl">
-          <div className="article-prose prose max-w-none prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
+      <div className="max-w-7xl mx-auto px-4 py-16 md:py-8 flex flex-col items-stretch lg:flex-row lg:justify-center gap-8 lg:gap-10">
+        <main className="flex-1 min-w-0 lg:max-w-[808px]">
+          <div className="article-prose prose max-w-[808px] prose-a:text-[#215491] prose-a:no-underline hover:prose-a:underline">
             <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
               {articleText}
             </ReactMarkdown>
@@ -199,8 +199,9 @@ function resolveHeroImage(
   // Prefer article's own featured image (a populated media object), fall back to context page.
   const articleImage = article.featuredImage?.image;
   const url =
-    (articleImage && typeof articleImage === "object" ? articleImage.url : null) ??
-    page?.featuredImage?.image?.url;
+    (articleImage && typeof articleImage === "object"
+      ? articleImage.url
+      : null) ?? page?.featuredImage?.image?.url;
   if (!url) return null;
 
   return url.startsWith("/") ? `${getPayloadURL()}${url}` : url;

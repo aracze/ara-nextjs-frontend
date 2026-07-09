@@ -46,6 +46,25 @@ export default async function RootLayout({
 }>) {
   const { data } = await fetchRootPages();
 
+  // Ořežeme navigační strom jen na pole, která Header reálně používá. Bez toho by se
+  // celý `depth=2` strom (včetně `text`/`meta`/… všech stránek a článků) serializoval
+  // do RSC payloadu na každé stránce a nafoukl HTML zdroj o megabajty.
+  const headerPages = (data.pages ?? []).map((p) => ({
+    id: p.id,
+    title: p.title,
+    fullSlug: p.fullSlug,
+    category: p.category,
+    children: p.children?.docs
+      ? {
+          docs: p.children.docs.map((c) => ({
+            id: c.id,
+            title: c.title,
+            fullSlug: c.fullSlug,
+          })),
+        }
+      : undefined,
+  }));
+
   return (
     <html lang="cs" className={`${openSans.variable} ${poppins.variable}`}>
       <body className="antialiased">
@@ -53,8 +72,8 @@ export default async function RootLayout({
 
         {/* HLAVNÍ KONTEJNER: flex rozložení pro menu a obsah */}
         <div className="flex flex-col min-h-screen">
-          {data.pages?.length > 0 && (
-            <Header pages={data.pages} headerLogo={data.global?.header?.logo} />
+          {headerPages.length > 0 && (
+            <Header pages={headerPages} headerLogo={data.global?.header?.logo} />
           )}
           <div className="grow w-full">{children}</div>
           <Footer />

@@ -1,0 +1,9 @@
+@AGENTS.md
+
+## Legacy Grails project (migration source)
+
+When migrating features from the legacy Grails site or checking legacy behavior
+(URLs, domain model, business rules), read `grails/AI_MIGRATION_SOURCE.md` —
+a compact knowledge base of the old `aracze-grails` project (architecture,
+domain model, conventions). The legacy source itself lives under `grails/`.
+Update `grails/AI_MIGRATION_SOURCE.md` whenever major migration discoveries are made.

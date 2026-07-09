@@ -1,17 +1,31 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Page, ImageLink, PageCategory } from "@/types/payload";
+import { ImageLink, PageCategory } from "@/types/payload";
 import Search from "@/components/features/search/search";
 import DOMPurify from "isomorphic-dompurify";
+
+// Header je client komponenta → cokoli mu předáme se serializuje do RSC payloadu
+// na KAŽDÉ stránce. Proto přijímá jen navigační podmnožinu (bez `text`, `meta`,
+// `detail`, `featuredImage`, `articles` a bez vnoření hlouběji než přímé děti),
+// jinak by se do HTML zdroje propsala plná těla všech stránek i článků.
+export type NavPage = {
+  id: number | string;
+  title: string;
+  fullSlug: string;
+  category: PageCategory;
+  children?: {
+    docs: { id: number | string; title: string; fullSlug: string }[];
+  };
+};
 
 export function Header({
   pages,
   headerLogo,
 }: {
-  pages: Page[];
+  pages: NavPage[];
   headerLogo?: ImageLink | null;
 }) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -105,7 +119,7 @@ export function Header({
                 return a.title.localeCompare(b.title, "cs");
               })
               .map((page, index) => {
-                const hasChildren = page.children?.docs?.length > 0;
+                const hasChildren = (page.children?.docs?.length ?? 0) > 0;
                 const pageId = page.id || `temp-id-${index}`;
                 return (
                   <div
@@ -144,7 +158,7 @@ export function Header({
       </nav>
 
       {/* Mega Menu - Vykresleno pouze jednou mimo loop pro čistší DOM a lepší pozicování */}
-      {activePage && activePage.children?.docs?.length > 0 && (
+      {activePage && (activePage.children?.docs?.length ?? 0) > 0 && (
         <div
           className="absolute left-0 right-0 w-full bg-[#215490] border-b-2 border-[#1A4579] shadow-2xl transition-all duration-300 top-[65px] z-[150] pointer-events-auto animate-in fade-in slide-in-from-top-1 duration-200"
           onMouseEnter={() => handleMouseEnter(String(activePage.id))}
@@ -153,7 +167,7 @@ export function Header({
           <div className="bg-white py-2">
             <div className="max-w-7xl mx-auto px-4 md:px-12 py-4">
               <div className="grid grid-cols-6 gap-y-1 gap-x-8">
-                {[...(activePage.children.docs || [])]
+                {[...(activePage.children?.docs || [])]
                   .sort((a, b) => a.title.localeCompare(b.title, "cs"))
                   .map((child, index) => (
                     <Link
