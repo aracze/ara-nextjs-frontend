@@ -4,15 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "1337",
-        pathname: "/uploads/**",
-      },
-    ],
-    unoptimized: true,
+    // Zmenšování obrázků dělá Cloudinary (viz loader), ne Next server —
+    // funguje to tak i se standalone outputem bez další zátěže.
+    loader: "custom",
+    loaderFile: "./src/lib/cloudinary-loader.ts",
   },
   output: "standalone",
 };

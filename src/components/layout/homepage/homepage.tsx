@@ -7,11 +7,9 @@ import { StaticHeroImage } from "@/components/features/static-hero-image";
 export const Homepage = ({ homepage }: { homepage?: HomepageType | null }) => {
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative w-full h-[350px] overflow-hidden bg-[#3b444f]">
+      <section className="relative w-full h-[315px] overflow-hidden bg-[#3b444f]">
         <StaticHeroImage
-          imageUrl={
-            "https://res.cloudinary.com/ara/image/upload/c_fit,w_1600,q_auto/homepage.jpg"
-          }
+          imageUrl={"https://res.cloudinary.com/ara/image/upload/homepage.jpg"}
         />
 
         <StaticHeroTitle title={"Najdi si svůj cíl"} />

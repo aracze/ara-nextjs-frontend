@@ -29,8 +29,8 @@
 
   /* Core typography based on ara.cz */
   .prose p {
-    font-size: 17px;
-    line-height: 2.2; /* 220% for standard text readability */
+    font-size: 18px;
+    line-height: 2; /* 200% for standard text readability */
     color: #353535;
     margin-bottom: 20px;
     margin-top: 0;

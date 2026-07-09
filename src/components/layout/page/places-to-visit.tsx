@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { PageCategory, PageChild, RichTextRoot } from "@/types/payload";
 import { GoogleMap, MapMarker } from "@/components/features/google-map";
 import { richTextToHtml } from "@/lib/utils";
 import { ExpandableTouristPoint } from "./expandable-tourist-point";
+import { PlaceCardImage } from "./place-card-image";
 
 interface PlacesToVisitProps {
   pageChildren: PageChild[];
@@ -161,12 +161,11 @@ function SuperordinateGrid({
           >
             <div className="relative h-full w-full overflow-hidden">
               {imageUrl ? (
-                <Image
+                <PlaceCardImage
                   src={imageUrl}
                   alt={place.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  hasMap={hasMap}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-[#1a3f6c]/5 to-[#1a3f6c]/10 flex items-center justify-center">
