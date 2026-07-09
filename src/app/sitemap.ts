@@ -7,7 +7,21 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = getSiteURL();
-  const { pages, articles } = await fetchSitemapEntries();
+
+  // Sitemap se prerenderuje i při buildu. Když CMS není dostupné (např. build
+  // obrazu v GitHub Actions), nespadneme — vrátíme aspoň homepage a zbytek se
+  // doplní při další regeneraci (ISR) za běhu, kdy už CMS běží.
+  let pages: Awaited<ReturnType<typeof fetchSitemapEntries>>["pages"] = [];
+  let articles: Awaited<ReturnType<typeof fetchSitemapEntries>>["articles"] =
+    [];
+  try {
+    ({ pages, articles } = await fetchSitemapEntries());
+  } catch (err) {
+    console.error(
+      `Sitemap: CMS nedostupné, vracím jen homepage. Detail: ${err}`,
+    );
+    return [{ url: site, changeFrequency: "daily", priority: 1 }];
+  }
 
   const toUrl = (path: string) =>
     `${site}${path.startsWith("/") ? path : `/${path}`}`;

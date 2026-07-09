@@ -20,7 +20,9 @@ export function ResultList({
           // Simple attempt to highlight query in title if we want, but keeping it simple for now
           return (
             <Link
-              href={result.item.fullSlug}
+              // fullSlug mají jen stránky; ostatní položky (služby) padnou na
+              // homepage místo neplatného odkazu.
+              href={result.item.fullSlug || result.item.slug || "/"}
               key={result.item.documentId || `result-${index}`}
               onClick={() => handleLinkClicked()}
               className="group flex items-center py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"

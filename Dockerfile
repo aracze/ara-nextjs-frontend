@@ -1,34 +1,35 @@
 # syntax=docker.io/docker/dockerfile:1
 
 FROM node:24-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# libc6-compat bývá potřeba pro některé nativní moduly na Alpine.
 RUN apk add --no-cache libc6-compat
+
+# Instalace závislostí (pnpm — projekt používá pnpm-lock.yaml, ne npm)
+FROM base AS deps
 WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json ./
-RUN npm ci
-
-# Rebuild the source code only when needed
+# Sestavení
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG STRAPI_BASE_API_URL
-ENV STRAPI_BASE_API_URL=${STRAPI_BASE_API_URL}
+# URL na CMS pro build-time generování vyhledávacího indexu.
+# Když CMS není dostupné, vygeneruje se prázdný index a build nespadne
+# (viz src/scripts/generate-search-index.ts).
+ARG PAYLOAD_BASE_API_URL
+ENV PAYLOAD_BASE_API_URL=${PAYLOAD_BASE_API_URL}
 
-ARG REDIS_URL
-ENV REDIS_URL=${REDIS_URL}
+RUN corepack enable pnpm \
+  && pnpm run generate-search-index \
+  && pnpm run build
 
-RUN npm run generate-search-index
+# Ať runner stage bezpečně zkopíruje public i kdyby ve zdrojích chyběl.
+RUN mkdir -p public
 
-RUN npm run build
-
-# Production image, copy all the files and run next
+# Produkční obraz — jen spuštění hotového standalone outputu
 FROM base AS runner
 WORKDIR /app
 
@@ -39,8 +40,11 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Správná práva pro prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Standalone output (server.js) — výrazně menší obraz
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -49,8 +53,7 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
+
+# server.js vytváří `next build` ze standalone outputu
 CMD ["node", "server.js"]

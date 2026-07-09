@@ -5,6 +5,10 @@ import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+// Vykreslujeme za běhu (ne při buildu) — obrázek se staví v GitHub Actions bez
+// běžícího CMS. Data se dál cachují na úrovni fetch (revalidate: 10 s).
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ slug: string[] }>;
 };

@@ -1,6 +1,8 @@
 export interface SearchItem {
-  slug: string;
-  fullSlug: string;
+  // slug/fullSlug nejsou u všech položek (Services/Showcases je nemají,
+  // jen stránky), proto jsou volitelné.
+  slug?: string;
+  fullSlug?: string;
   title: string;
   text?: string;
   documentId?: string;

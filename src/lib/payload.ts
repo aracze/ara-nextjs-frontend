@@ -114,7 +114,14 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
     );
     pages = normalizePages(response.docs || []);
   } catch {
-    pages = await fetchAllPagesPayload();
+    try {
+      pages = await fetchAllPagesPayload();
+    } catch {
+      // CMS je nedostupné (typicky při buildu obrazu v GitHub Actions, kde
+      // žádné CMS neběží). Nespadneme — vrátíme prázdný seznam. Za běhu, kdy
+      // už CMS běží, se data doplní (ISR / dynamické vykreslení).
+      pages = [];
+    }
   }
 
   const [header, homepage] = await Promise.all([
@@ -319,7 +326,10 @@ export async function fetchSitemapEntries(): Promise<{
 
   const pages = (pagesRes.docs || [])
     .filter((p) => typeof p.fullSlug === "string" && p.fullSlug)
-    .map((p) => ({ path: p.fullSlug as string, lastModified: p.updatedAt || now }));
+    .map((p) => ({
+      path: p.fullSlug as string,
+      lastModified: p.updatedAt || now,
+    }));
 
   const articles = (articlesRes.docs || [])
     .map((a) => {

@@ -2,3 +2,15 @@ node_modules
 .next
 .git
 .DS_Store
+
+# Env soubory se do obrazu nesmí zabalit (obsahují tajemství jako WEBHOOK_SECRET).
+# Běhové proměnné dodává docker-compose na serveru.
+.env
+.env.*
+
+# Stará npm zámková stránka — projekt jede na pnpm.
+package-lock.json
+
+# Vývojové/build artefakty
+grails
+*.log

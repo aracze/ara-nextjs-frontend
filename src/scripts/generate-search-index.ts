@@ -9,10 +9,38 @@ import type { ShowcaseData } from "@/types/search";
 
 const cmsUrl = process.env.PAYLOAD_BASE_API_URL || "http://localhost:3000";
 
+// The search list and search index are written to src/data here.
+// Extracted so we can ALWAYS write the files (even empty ones) — the frontend
+// build statically imports these JSON files, so if they are missing the build
+// fails. Writing empty files on any CMS failure keeps the build resilient.
+const writeToFile = (
+  fileName: string,
+  fileData: Record<string, unknown> | unknown,
+) => {
+  const dataDir = path.resolve(process.cwd(), "src/data");
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  const fpath = path.join(dataDir, `${fileName}.json`);
+  // Synchronous write so the file is guaranteed to exist before `next build`
+  // starts (the generator runs as its own step in the Docker build).
+  fs.writeFileSync(fpath, JSON.stringify(fileData, null, 2));
+  console.log(`Search data file successfully written to ${fpath}`);
+};
+
+// Writes an empty-but-valid search index so the static imports resolve.
+const writeEmptyIndex = () => {
+  writeToFile("search_data", []);
+  writeToFile("search_index", Fuse.createIndex(["title", "text"], []).toJSON());
+};
+
 /*
- * Fetches data from Strapi, formats it using Fuse.js,
- * and creates search list and a search index. Saves
- * both to files within src/lib/data.
+ * Fetches data from the CMS, formats it using Fuse.js, and creates a search
+ * list and a search index. Saves both to files within src/data.
+ *
+ * On any failure (CMS unreachable, error response, …) it writes an empty index
+ * instead of throwing, so the build never breaks when the CMS is not available
+ * (e.g. during the GitHub Actions image build).
  */
 export async function generateSearchIndex() {
   const query = qs.stringify(
@@ -24,10 +52,21 @@ export async function generateSearchIndex() {
       encodeValuesOnly: true,
     },
   );
-  const resp = await fetch(`${cmsUrl}/api/pages?${query}`, {
-    method: "GET",
-    cache: "no-store",
-  });
+
+  let resp: Response;
+  try {
+    resp = await fetch(`${cmsUrl}/api/pages?${query}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.log(
+      `There was a problem reaching the CMS at ${cmsUrl}: ${err}. ` +
+        `Writing an empty search index.`,
+    );
+    writeEmptyIndex();
+    return;
+  }
 
   if (!resp.ok) {
     const err = await resp.text();
@@ -38,6 +77,7 @@ export async function generateSearchIndex() {
     } catch (err) {
       console.log(`There was a problem fetching data from CMS: ${err}`);
     }
+    writeEmptyIndex();
   } else {
     const indexData: Record<string, unknown>[] = [];
     let respData: PageData[] = [];
@@ -46,6 +86,7 @@ export async function generateSearchIndex() {
 
     if (body?.error) {
       console.log(`There was a problem fetching data from CMS: ${body.error}`);
+      writeEmptyIndex();
       return;
     } else {
       respData = (body?.docs || body?.data || body) as PageData[];
@@ -105,27 +146,6 @@ export async function generateSearchIndex() {
       ["title", "text", "name", "description", "link", "type"],
       indexData,
     );
-
-    // The search list and search index are written
-    // to src/lib/data here
-    const writeToFile = (
-      fileName: string,
-      fileData: Record<string, unknown> | unknown,
-    ) => {
-      const dataDir = path.resolve(process.cwd(), "src/data");
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      const fpath = path.join(dataDir, `${fileName}.json`);
-
-      fs.writeFile(fpath, JSON.stringify(fileData, null, 2), (err) => {
-        if (err) {
-          console.error(err);
-        } else {
-          console.log(`Search data file successfully written to ${fpath}`);
-        }
-      });
-    };
 
     writeToFile("search_data", indexData);
     writeToFile("search_index", fuseIndex.toJSON());
