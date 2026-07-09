@@ -34,6 +34,12 @@ const writeEmptyIndex = () => {
   writeToFile("search_index", Fuse.createIndex(["title", "text"], []).toJSON());
 };
 
+// Payload vrací některá pole (např. `text`) jako rich-text objekt, ne řetězec.
+// removeMd() by na ne-řetězci spadl (output.replace is not a function), proto
+// odstraníme markdown jen z řetězců, jinak vrátíme prázdno.
+const toPlainText = (value: unknown): string =>
+  typeof value === "string" ? removeMd(value) : "";
+
 /*
  * Fetches data from the CMS, formats it using Fuse.js, and creates a search
  * list and a search index. Saves both to files within src/data.
@@ -92,63 +98,72 @@ export async function generateSearchIndex() {
       respData = (body?.docs || body?.data || body) as PageData[];
     }
 
-    // The search index data is created here
-    respData.forEach((page: PageData) => {
-      // Add the page itself to the index
-      indexData.push({
-        title: removeMd((page.title as string) || ""),
-        text: removeMd((page.text as string) || ""),
-        slug: (page.slug as string) || "",
-        fullSlug: (page.fullSlug as string) || "",
-        type: "Pages",
+    // Zpracování obalíme try/catch — kdyby cokoli v datech mělo neočekávaný
+    // tvar, build nesmí spadnout: v nejhorším zapíšeme prázdný index.
+    try {
+      // The search index data is created here
+      respData.forEach((page: PageData) => {
+        // Add the page itself to the index
+        indexData.push({
+          title: toPlainText(page.title),
+          text: toPlainText(page.text),
+          slug: (page.slug as string) || "",
+          fullSlug: (page.fullSlug as string) || "",
+          type: "Pages",
+        });
+
+        if (page.services) {
+          page.services.forEach((service: ServiceData) => {
+            if (service.showcases) {
+              service.showcases.forEach((showcase: ShowcaseData) => {
+                showcase["type"] = "Showcases";
+
+                for (const key of [
+                  "id",
+                  "cover_image",
+                  "createdAt",
+                  "updatedAt",
+                  "publishedAt",
+                ]) {
+                  delete showcase[key];
+                }
+
+                indexData.push(showcase);
+              });
+            }
+
+            service["type"] = "Services";
+
+            for (const key of [
+              "showcases",
+              "cover_image",
+              "id",
+              "createdAt",
+              "updatedAt",
+              "publishedAt",
+            ]) {
+              delete service[key];
+            }
+
+            indexData.push(service);
+          });
+        }
       });
 
-      if (page.services) {
-        page.services.forEach((service: ServiceData) => {
-          if (service.showcases) {
-            service.showcases.forEach((showcase: ShowcaseData) => {
-              showcase["type"] = "Showcases";
+      // The search index is pre-generated here
+      const fuseIndex = Fuse.createIndex(
+        ["title", "text", "name", "description", "link", "type"],
+        indexData,
+      );
 
-              for (const key of [
-                "id",
-                "cover_image",
-                "createdAt",
-                "updatedAt",
-                "publishedAt",
-              ]) {
-                delete showcase[key];
-              }
-
-              indexData.push(showcase);
-            });
-          }
-
-          service["type"] = "Services";
-
-          for (const key of [
-            "showcases",
-            "cover_image",
-            "id",
-            "createdAt",
-            "updatedAt",
-            "publishedAt",
-          ]) {
-            delete service[key];
-          }
-
-          indexData.push(service);
-        });
-      }
-    });
-
-    // The search index is pre-generated here
-    const fuseIndex = Fuse.createIndex(
-      ["title", "text", "name", "description", "link", "type"],
-      indexData,
-    );
-
-    writeToFile("search_data", indexData);
-    writeToFile("search_index", fuseIndex.toJSON());
+      writeToFile("search_data", indexData);
+      writeToFile("search_index", fuseIndex.toJSON());
+    } catch (err) {
+      console.log(
+        `Chyba při zpracování dat z CMS: ${err}. Zapisuji prázdný index.`,
+      );
+      writeEmptyIndex();
+    }
   }
 }
 
