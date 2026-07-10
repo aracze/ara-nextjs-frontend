@@ -9,8 +9,15 @@ import { notFound } from "next/navigation";
 // pozadí obnovuje po 5 min. Při publikaci obsahu ji CMS obnoví okamžitě přes
 // /api/cache (revalidateTag). Prefetch i navigace tak berou hotovou verzi
 // z cache místo plného re-renderu — to dramaticky sníží zátěž i dobu odezvy.
-// Bez generateStaticParams se nic neprerenderuje při buildu → build CMS nepotřebuje.
 export const revalidate = 300;
+
+// Zapíná ISR pro dynamický segment. Bez toho by route zůstal plně dynamický
+// (ƒ) a `revalidate` by se neuplatnil. Prázdné pole = nic se nepředgeneruje při
+// buildu (CMS není potřeba), ale první návštěva stránku vygeneruje a uloží do
+// cache; další návštěvy ji berou z cache.
+export async function generateStaticParams() {
+  return [];
+}
 
 type Props = {
   params: Promise<{ slug: string[] }>;
