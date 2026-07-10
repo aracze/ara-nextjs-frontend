@@ -4,6 +4,7 @@ import {
   fetchPageByFullSlug,
   fetchPageLightByFullSlug,
   fetchArticleBySlug,
+  pageHasArticlesBySlug,
 } from "@/lib/payload";
 import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 import { Metadata } from "next";
@@ -86,7 +87,11 @@ export default async function PageRoute({ params }: Props) {
   // sériovou vlnu ~0,3–0,5 s na podstránkách). Fire-and-forget + catch: když
   // stránka neexistuje (článek/404), výsledky se prostě nepoužijí.
   for (let i = 1; i < slug.length; i++) {
-    void fetchPageLightByFullSlug(slug.slice(0, i).join("/")).catch(() => {});
+    const prefix = slug.slice(0, i).join("/");
+    void fetchPageLightByFullSlug(prefix).catch(() => {});
+    // Kontext podnavigace bývá některý z předků — předehřejeme i levný počet
+    // článků (viz contextFlags v Page), ať poslední vlna nečeká.
+    void pageHasArticlesBySlug("/" + prefix).catch(() => {});
   }
 
   // 1. Try fetching as a Page

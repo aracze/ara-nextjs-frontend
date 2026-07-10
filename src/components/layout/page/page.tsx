@@ -8,7 +8,7 @@ import { PlacesToVisit } from "./places-to-visit";
 import {
   fetchPageLightByFullSlug,
   fetchMediaUrlsByIds,
-  pageHasArticles,
+  pageHasArticlesBySlug,
 } from "@/lib/payload";
 import { fetchExchangeRate } from "@/lib/exchange-rate";
 import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
@@ -82,12 +82,15 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
         }
         // Kontext je předek (Místo) — načteme ho lehce (je už v cache z předků)
         // a existenci článků zjistíme levným počtem místo těžkého detailu.
-        const ctx = (
-          await fetchPageLightByFullSlug(menuContext.contextFullSlug)
-        ).data.pages[0];
+        // (Obojí je typicky předehřáté z route — viz prefire v [...slug]/page.tsx.)
+        const [ctxRes, hasArticles] = await Promise.all([
+          fetchPageLightByFullSlug(menuContext.contextFullSlug),
+          pageHasArticlesBySlug(menuContext.contextFullSlug),
+        ]);
+        const ctx = ctxRes.data.pages[0];
         return {
           hasPlaces: (ctx?.children?.docs?.length ?? 0) > 0,
-          hasArticles: ctx ? await pageHasArticles(ctx.id) : false,
+          hasArticles: ctx ? hasArticles : false,
         };
       })(),
       exchangePromise,

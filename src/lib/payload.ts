@@ -402,6 +402,29 @@ export const fetchPageLightByFullSlug = cache(async (slug: string) => {
  * `limit=1` + `depth=0`, čte se jen `totalDocs`. Používá se pro rozhodnutí, zda
  * v podnavigaci zobrazit záložku „Články", aniž bychom tahali celý kontext.
  */
+/**
+ * Jako pageHasArticles, ale podle fullSlug — dá se tak odpálit souběžně
+ * s detailem stránky (slug je známý hned), bez čekání na id kontextu.
+ */
+export const pageHasArticlesBySlug = cache(
+  async (fullSlug: string): Promise<boolean> => {
+    try {
+      const res = await fetchJSON<{ totalDocs?: number }>(
+        buildPayloadUrl("/api/articles", {
+          "where[mainPage.fullSlug][equals]": fullSlug,
+          limit: "1",
+          depth: "0",
+          "select[id]": "true",
+        }),
+        { next: { tags: ["page_" + fullSlug + "_articles"] } },
+      );
+      return (res.totalDocs ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  },
+);
+
 export const pageHasArticles = cache(
   async (pageId: number | string): Promise<boolean> => {
     try {
