@@ -21,22 +21,39 @@ const menuOwnerCategories: PageCategory[] = [
 ];
 
 export const Page = async ({ page }: { page: PayloadPage }) => {
-  const rootPage = await fetchRootPage(page);
-  const safeRootPage = rootPage ?? page;
   const pageChildren = page.children?.docs ?? [];
 
+  // Nezávislé dotazy běží PARALELNĚ — sekvenční čekání (ancestors → menu →
+  // kurz → obrázky) sčítalo ~0,3 s režii CMS za každý dotaz. React cache()
+  // dedupuje sdílené ancestor fetche uvnitř větví.
+  const childImageIdsEarly = pageChildren
+    .map<number | null>((c) => {
+      const imgField = c.featuredImage?.image;
+      return typeof imgField === "number" ? imgField : null;
+    })
+    .filter((id): id is number => id !== null);
+
+  const [rootPage, imageUrlMap] = await Promise.all([
+    fetchRootPage(page),
+    fetchMediaUrlsByIds(childImageIdsEarly),
+  ]);
+  const safeRootPage = rootPage ?? page;
+
   const imageUrl = getHeroImage(page, safeRootPage);
-  const breadcrumbs = await getBreadcrumbs(page);
 
   // Determine which Place "owns" the menu for this page.
   // e.g. on Dubrovník's Počasí → menuContext = Dubrovník's children
   // e.g. on Chorvatsko's Počasí → menuContext = Chorvatsko's children
-  const menuContext = await fetchMenuContext(page, safeRootPage);
-  const practicalInfoSourceChildren = await fetchPracticalInfoSourceChildren(
-    page,
-    safeRootPage,
-    menuContext.isSubPlace,
-  );
+  // (breadcrumbs i menuContext čtou stejné ancestor fetche — dedupováno.)
+  const effectiveCurrencyCode =
+    page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
+  const [breadcrumbs, menuContext, exchangeData] = await Promise.all([
+    getBreadcrumbs(page),
+    fetchMenuContext(page, safeRootPage),
+    effectiveCurrencyCode
+      ? fetchExchangeRate(effectiveCurrencyCode)
+      : Promise.resolve(null),
+  ]);
 
   // Sekundární menu se nezobrazuje na rubrikách ani statických stránkách.
   const showSubnavigation =
@@ -46,38 +63,35 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
   // "Místa"/"Články" v sekundárním menu patří kontextovému místu (např. Chorvatsko),
   // ne aktuální podstránce (Vstupní podmínky). Data kontextové stránky načítáme jen když
   // se menu vůbec renderuje (jinak zbytečný fetch pro rubriky/statické stránky).
-  let contextHasPlaces = false;
-  let contextHasArticles = false;
-  if (showSubnavigation) {
-    if (menuContext.contextFullSlug === page.fullSlug) {
-      // Kontext je aktuální stránka — máme její plná data (vč. článků).
-      contextHasPlaces = (page.children?.docs?.length ?? 0) > 0;
-      contextHasArticles = (page.articles?.length ?? 0) > 0;
-    } else {
+  const [practicalInfoSourceChildren, contextFlags] = await Promise.all([
+    fetchPracticalInfoSourceChildren(
+      page,
+      safeRootPage,
+      menuContext.isSubPlace,
+    ),
+    (async (): Promise<{ hasPlaces: boolean; hasArticles: boolean }> => {
+      if (!showSubnavigation) return { hasPlaces: false, hasArticles: false };
+      if (menuContext.contextFullSlug === page.fullSlug) {
+        // Kontext je aktuální stránka — máme její plná data (vč. článků).
+        return {
+          hasPlaces: (page.children?.docs?.length ?? 0) > 0,
+          hasArticles: (page.articles?.length ?? 0) > 0,
+        };
+      }
       // Kontext je předek (Místo) — načteme ho lehce (je už v cache z předků)
       // a existenci článků zjistíme levným počtem místo těžkého detailu.
       const ctx = (await fetchPageLightByFullSlug(menuContext.contextFullSlug))
         .data.pages[0];
-      contextHasPlaces = (ctx?.children?.docs?.length ?? 0) > 0;
-      contextHasArticles = ctx ? await pageHasArticles(ctx.id) : false;
-    }
-  }
+      return {
+        hasPlaces: (ctx?.children?.docs?.length ?? 0) > 0,
+        hasArticles: ctx ? await pageHasArticles(ctx.id) : false,
+      };
+    })(),
+  ]);
+  const contextHasPlaces = contextFlags.hasPlaces;
+  const contextHasArticles = contextFlags.hasArticles;
 
-  const effectiveCurrencyCode =
-    page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
-  const exchangeData = effectiveCurrencyCode
-    ? await fetchExchangeRate(effectiveCurrencyCode)
-    : null;
-
-  // Resolve image URLs for child pages (for map markers & place cards)
-  const childImageIds = pageChildren
-    .map<number | null>((c) => {
-      const imgField = c.featuredImage?.image;
-      return typeof imgField === "number" ? imgField : null;
-    })
-    .filter((id): id is number => id !== null);
-  const imageUrlMap = await fetchMediaUrlsByIds(childImageIds);
-  // Build a map from child page ID → image URL
+  // Build a map from child page ID → image URL (imageUrlMap načteno paralelně výše)
   const childImageUrlMap = new Map<number | string, string>();
   for (const child of pageChildren) {
     const imgField = child.featuredImage?.image;

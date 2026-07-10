@@ -29,6 +29,71 @@ const MENU_QUERY_PARAMS: Record<string, string> = {
   "populate[pages][category]": "true",
 };
 
+// Pole pro předky (breadcrumbs, menu kontext, kořenová stránka): jako menu,
+// ale navíc `detail` a `featuredImage` — podstránky z kořenového předka berou
+// hero obrázek a fallback měny/časové zóny. (Obojí jsou malá pole; těžké části
+// — texty, články — zůstávají vynechané.)
+const ANCESTOR_QUERY_PARAMS: Record<string, string> = {
+  ...MENU_QUERY_PARAMS,
+  "select[detail]": "true",
+  "select[featuredImage]": "true",
+};
+
+// Detail stránky se skládá ze 3 PARALELNÍCH dotazů (stránka ∥ děti ∥ články)
+// místo jednoho těžkého depth=2 s joiny — joiny běží v Payloadu sériově a
+// tahaly i nepoužívaný balast (SEO meta, breadcrumbs, vnořené joiny, plné
+// profily uživatelů). Měřeno na /nemecko: 287 KB/1,7 s → 3 dotazy paralelně,
+// nejpomalejší ~0,7 s. Každý dotaz stahuje jen pole, která web kreslí.
+
+// 1) Vlastní pole stránky (texty, detail, hero, autor).
+const PAGE_SCALAR_QUERY_PARAMS: Record<string, string> = {
+  depth: "1",
+  limit: "1",
+  "select[title]": "true",
+  "select[slug]": "true",
+  "select[fullSlug]": "true",
+  "select[category]": "true",
+  "select[text]": "true",
+  "select[detail]": "true",
+  "select[featuredImage]": "true",
+  "select[createdBy]": "true",
+  "select[createdByPublic]": "true",
+  "populate[users][username]": "true",
+  "populate[users][firstName]": "true",
+  "populate[users][lastName]": "true",
+  "populate[media][url]": "true",
+  "populate[media][alternativeText]": "true",
+};
+
+// 2) Děti stránky (karty míst, mapa, menu) — texty jsou potřeba pro náhledy
+// karet a rozbalovací turistické cíle. Řazení odpovídá subPages joinu (ověřeno).
+const PAGE_CHILDREN_QUERY_PARAMS: Record<string, string> = {
+  depth: "1",
+  limit: "100",
+  "select[title]": "true",
+  "select[slug]": "true",
+  "select[fullSlug]": "true",
+  "select[category]": "true",
+  "select[text]": "true",
+  "select[detail]": "true",
+  "select[featuredImage]": "true",
+  "populate[media][url]": "true",
+  "populate[media][alternativeText]": "true",
+};
+
+// 3) Články stránky (primární přes mainPage + sekundární přes pages) jedním
+// OR dotazem; roztřídí se lokálně podle mainPage. Texty = výňatky karet.
+const PAGE_ARTICLES_QUERY_PARAMS: Record<string, string> = {
+  depth: "0",
+  limit: "100",
+  "select[title]": "true",
+  "select[slug]": "true",
+  "select[documentId]": "true",
+  "select[text]": "true",
+  "select[featuredImage]": "true",
+  "select[mainPage]": "true",
+};
+
 type PayloadDocsResponse<T> = {
   docs: T[];
   totalDocs?: number;
@@ -201,28 +266,73 @@ async function enrichArticleImages(articles: Article[]): Promise<Article[]> {
   });
 }
 
+/** Id z relace, která může být číslo nebo populovaný objekt. */
+function relationId(value: unknown): number | string | null {
+  if (typeof value === "number" || typeof value === "string") return value;
+  if (value && typeof value === "object" && "id" in value) {
+    return (value as { id: number | string }).id;
+  }
+  return null;
+}
+
 async function fetchPageByFullSlugPayload(
   fullSlug: string,
 ): Promise<{ data: { pages: Page[] } }> {
-  const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
-    buildPayloadUrl("/api/pages", {
-      "where[fullSlug][equals]": fullSlug,
-      depth: "2",
-      limit: "1",
-    }),
-    { next: { tags: ["page_" + fullSlug] } },
-  );
-  const match = response.docs?.[0]
-    ? normalizePage(response.docs[0])
-    : undefined;
+  const tags = { next: { tags: ["page_" + fullSlug] } };
 
-  if (match) {
-    match.articles = await enrichArticleImages(match.articles);
+  // Tři nezávislé dotazy paralelně (viz komentář u *_QUERY_PARAMS výše).
+  const [pageRes, childrenRes, articlesRes] = await Promise.all([
+    fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
+      buildPayloadUrl("/api/pages", {
+        ...PAGE_SCALAR_QUERY_PARAMS,
+        "where[fullSlug][equals]": fullSlug,
+      }),
+      tags,
+    ),
+    fetchJSON<PayloadDocsResponse<PageChild>>(
+      buildPayloadUrl("/api/pages", {
+        ...PAGE_CHILDREN_QUERY_PARAMS,
+        "where[parent.fullSlug][equals]": fullSlug,
+      }),
+      tags,
+    ).catch(() => ({ docs: [] as PageChild[] })),
+    fetchJSON<PayloadDocsResponse<Article>>(
+      buildPayloadUrl("/api/articles", {
+        ...PAGE_ARTICLES_QUERY_PARAMS,
+        "where[or][0][mainPage.fullSlug][equals]": fullSlug,
+        "where[or][1][pages.fullSlug][equals]": fullSlug,
+      }),
+      tags,
+    ).catch(() => ({ docs: [] as Article[] })),
+  ]);
+
+  const raw = pageRes.docs?.[0];
+  if (!raw) {
+    return { data: { pages: [] } };
   }
+
+  // Roztřídění článků: primární (mainPage = tato stránka) první — stejné
+  // pořadí jako dřívější primaryArticles/secondaryArticles joiny.
+  const allArticles = articlesRes.docs || [];
+  const primary = allArticles.filter(
+    (a) => relationId((a as { mainPage?: unknown }).mainPage) === raw.id,
+  );
+  const secondary = allArticles.filter(
+    (a) => relationId((a as { mainPage?: unknown }).mainPage) !== raw.id,
+  );
+
+  const match = normalizePage({
+    ...raw,
+    subPages: { docs: childrenRes.docs || [] },
+    primaryArticles: { docs: primary },
+    secondaryArticles: { docs: secondary },
+  });
+
+  match.articles = await enrichArticleImages(match.articles);
 
   return {
     data: {
-      pages: match ? [match] : [],
+      pages: [match],
     },
   };
 }
@@ -268,7 +378,7 @@ async function fetchPageLightByFullSlugPayload(
 ): Promise<{ data: { pages: Page[] } }> {
   const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
     buildPayloadUrl("/api/pages", {
-      ...MENU_QUERY_PARAMS,
+      ...ANCESTOR_QUERY_PARAMS,
       "where[fullSlug][equals]": fullSlug,
       limit: "1",
     }),
