@@ -1,4 +1,4 @@
-import { HoverPrefetchLink as Link } from "@/components/ui/hover-prefetch-link";
+import Link from "next/link";
 import { PageChild, PageCategory } from "@/types/payload";
 
 const hiddenCategories: string[] = [

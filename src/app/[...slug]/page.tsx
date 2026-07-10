@@ -5,19 +5,13 @@ import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-// ISR: stránka se vygeneruje on-demand při první návštěvě, cachuje se a na
-// pozadí obnovuje po 5 min. Při publikaci obsahu ji CMS obnoví okamžitě přes
-// /api/cache (revalidateTag). Prefetch i navigace tak berou hotovou verzi
-// z cache místo plného re-renderu — to dramaticky sníží zátěž i dobu odezvy.
-export const revalidate = 300;
-
-// Zapíná ISR pro dynamický segment. Bez toho by route zůstal plně dynamický
-// (ƒ) a `revalidate` by se neuplatnil. Prázdné pole = nic se nepředgeneruje při
-// buildu (CMS není potřeba), ale první návštěva stránku vygeneruje a uloží do
-// cache; další návštěvy ji berou z cache.
-export async function generateStaticParams() {
-  return [];
-}
+// Streamované dynamické vykreslování (záměrně NE celostránková ISR cache):
+// s ISR čekala navigace na kompletní stránku bez jakékoliv odezvy (u studené
+// stránky i sekundy „mrtvého" webu). Dynamický režim streamuje — loading.tsx
+// (kostra) se zobrazí okamžitě a obsah do ní doteče. Prefetch odkazů pak
+// stahuje jen lehký shell po loading boundary (pár KB), ne celé stránky.
+// Rychlost obsahu zajišťuje cache dat na úrovni fetch (viz lib/payload.ts).
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string[] }>;

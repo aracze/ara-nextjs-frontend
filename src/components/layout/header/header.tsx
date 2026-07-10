@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { HoverPrefetchLink } from "@/components/ui/hover-prefetch-link";
 import Image from "next/image";
 import { ImageLink, PageCategory } from "@/types/payload";
 import { isCloudinary } from "@/lib/cloudinary-loader";
@@ -133,9 +132,7 @@ export function Header({
                     }
                     onMouseLeave={handleMouseLeave}
                   >
-                    {/* HoverPrefetchLink: přednačte cíl při najetí myší — navigace
-                        je pak okamžitá, ale bez stahování všech zemí dopředu. */}
-                    <HoverPrefetchLink
+                    <Link
                       href={page.fullSlug}
                       onClick={() => setActiveDropdown(null)}
                       className="px-5 text-white hover:text-gray-100 transition-colors tracking-wide text-[15px] font-semibold font-heading flex items-center gap-1 whitespace-nowrap"
@@ -144,7 +141,7 @@ export function Header({
                       {hasChildren && (
                         <span className="inline-block border-white hover:border-gray-100 border-t-4 border-l-4 border-r-4 border-l-transparent border-r-transparent border-white/60" />
                       )}
-                    </HoverPrefetchLink>
+                    </Link>
                   </div>
                 );
               })}
@@ -175,14 +172,14 @@ export function Header({
                 {[...(activePage.children?.docs || [])]
                   .sort((a, b) => a.title.localeCompare(b.title, "cs"))
                   .map((child, index) => (
-                    <HoverPrefetchLink
+                    <Link
                       key={child.id || `child-${index}`}
                       href={child.fullSlug}
                       onClick={() => setActiveDropdown(null)}
                       className="text-[14px] text-gray-800 py-1 px-3 -mx-3 transition-all inline-block w-full [text-shadow:1px_2px_3px_rgb(255,255,255)] hover:text-white hover:bg-[#3C6EAA] hover:rounded-sm hover:no-underline hover:shadow-none hover:[text-shadow:none]"
                     >
                       {child.title}
-                    </HoverPrefetchLink>
+                    </Link>
                   ))}
               </div>
             </div>

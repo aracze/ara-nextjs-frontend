@@ -83,7 +83,10 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
     next: {
-      revalidate: isProduction() ? 10 : 0,
+      // Stránky se vykreslují dynamicky (streaming) — rychlost obsahu stojí na
+      // této datové cache: 5 min + tagy (webhook /api/cache umí invalidovat
+      // okamžitě při publikaci). Ve vývoji se necachuje vůbec.
+      revalidate: isProduction() ? 300 : 0,
       ...init?.next,
       ...(isProduction() ? {} : { revalidate: 0 }),
     },
