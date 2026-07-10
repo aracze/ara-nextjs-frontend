@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HoverPrefetchLink as Link } from "@/components/ui/hover-prefetch-link";
 import { PageChild, PageCategory } from "@/types/payload";
 
 const hiddenCategories: string[] = [
@@ -133,8 +133,6 @@ export const Subnavigation = ({
           {/* Context page (the Place that owns this menu) */}
           <Link
             href={contextFullSlug}
-            // Odkazy v podnavigaci nestahujeme dopředu (viz prefetch storm).
-            prefetch={false}
             className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
               isContextActive
                 ? "text-[#287bbb] border-[#287bbb] font-bold"
@@ -153,7 +151,6 @@ export const Subnavigation = ({
             ) : (
               <Link
                 href={sectionHref("mista")}
-                prefetch={false}
                 className={itemClass(activeSection === "mista")}
               >
                 Místa
@@ -169,7 +166,6 @@ export const Subnavigation = ({
               <Link
                 key={pageChild.id}
                 href={pageChild.fullSlug}
-                prefetch={false}
                 className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
                   isActive
                     ? "text-[#287bbb] border-[#287bbb] font-bold"
@@ -185,7 +181,6 @@ export const Subnavigation = ({
           {isSubPlace && practicalInfoPage && (
             <Link
               href={practicalInfoPage.fullSlug}
-              prefetch={false}
               className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
                 isCurrentPagePracticalInfo
                   ? "text-[#287bbb] border-[#287bbb] font-bold"
@@ -209,7 +204,6 @@ export const Subnavigation = ({
             ) : (
               <Link
                 href={sectionHref("clanky")}
-                prefetch={false}
                 className={itemClass(activeSection === "clanky")}
               >
                 Články
