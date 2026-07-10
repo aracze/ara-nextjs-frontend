@@ -5,7 +5,11 @@ import { HeroSection } from "./hero-section";
 import { Subnavigation } from "./subnavigation";
 import { MainContent } from "./main-content";
 import { PlacesToVisit } from "./places-to-visit";
-import { fetchPageByFullSlug, fetchMediaUrlsByIds } from "@/lib/payload";
+import {
+  fetchPageLightByFullSlug,
+  fetchMediaUrlsByIds,
+  pageHasArticles,
+} from "@/lib/payload";
 import { fetchExchangeRate } from "@/lib/exchange-rate";
 import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 
@@ -45,13 +49,18 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
   let contextHasPlaces = false;
   let contextHasArticles = false;
   if (showSubnavigation) {
-    const contextPage =
-      menuContext.contextFullSlug === page.fullSlug
-        ? page
-        : ((await fetchPageByFullSlug(menuContext.contextFullSlug)).data
-            .pages[0] ?? page);
-    contextHasPlaces = (contextPage.children?.docs?.length ?? 0) > 0;
-    contextHasArticles = (contextPage.articles?.length ?? 0) > 0;
+    if (menuContext.contextFullSlug === page.fullSlug) {
+      // Kontext je aktuální stránka — máme její plná data (vč. článků).
+      contextHasPlaces = (page.children?.docs?.length ?? 0) > 0;
+      contextHasArticles = (page.articles?.length ?? 0) > 0;
+    } else {
+      // Kontext je předek (Místo) — načteme ho lehce (je už v cache z předků)
+      // a existenci článků zjistíme levným počtem místo těžkého detailu.
+      const ctx = (await fetchPageLightByFullSlug(menuContext.contextFullSlug))
+        .data.pages[0];
+      contextHasPlaces = (ctx?.children?.docs?.length ?? 0) > 0;
+      contextHasArticles = ctx ? await pageHasArticles(ctx.id) : false;
+    }
   }
 
   const effectiveCurrencyCode =
@@ -109,18 +118,18 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
 
         {/* Sub-navigation bar style — not shown on rubric or static content pages */}
         {showSubnavigation && (
-            <Subnavigation
-              contextTitle={menuContext.contextTitle}
-              contextFullSlug={menuContext.contextFullSlug}
-              pageChildren={menuContext.menuChildren}
-              rootChildren={practicalInfoSourceChildren}
-              currentPageFullSlug={page.fullSlug}
-              currentPageCategory={page.category}
-              isSubPlace={menuContext.isSubPlace}
-              hasPlaces={contextHasPlaces}
-              hasArticles={contextHasArticles}
-            />
-          )}
+          <Subnavigation
+            contextTitle={menuContext.contextTitle}
+            contextFullSlug={menuContext.contextFullSlug}
+            pageChildren={menuContext.menuChildren}
+            rootChildren={practicalInfoSourceChildren}
+            currentPageFullSlug={page.fullSlug}
+            currentPageCategory={page.category}
+            isSubPlace={menuContext.isSubPlace}
+            hasPlaces={contextHasPlaces}
+            hasArticles={contextHasArticles}
+          />
+        )}
 
         {/* 2. CONTENT AREA */}
         <MainContent
@@ -206,7 +215,9 @@ async function fetchAncestorChain(
   // We walk through all segments except the last one (which is the page itself)
   for (let i = 1; i < parts.length; i++) {
     const parentSlug = parts.slice(0, i).join("/");
-    const { data } = await fetchPageByFullSlug(parentSlug);
+    // Předky stačí lehce (title/fullSlug/category + děti pro menu), ne celý
+    // detail stránky — šetří opakované těžké dotazy při generování.
+    const { data } = await fetchPageLightByFullSlug(parentSlug);
     const parentPage = data?.pages?.[0];
 
     if (parentPage) {

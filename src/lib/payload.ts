@@ -12,6 +12,23 @@ import { cache } from "react";
 
 const DEFAULT_LIMIT = "200";
 
+// Pole potřebná pro hlavní menu (header): jen názvy/odkazy stránek a jejich
+// dětí. Bez `select`/`populate` Payload při depth táhne i články, služby a média
+// (~3 MB místo ~8 KB) — to bylo hlavní zdržení na KAŽDÉ stránce. `select`
+// omezí pole stránky, `populate[pages]` omezí pole napojených dětí (subPages).
+const MENU_QUERY_PARAMS: Record<string, string> = {
+  depth: "1",
+  "select[title]": "true",
+  "select[slug]": "true",
+  "select[fullSlug]": "true",
+  "select[category]": "true",
+  "select[subPages]": "true",
+  "populate[pages][title]": "true",
+  "populate[pages][slug]": "true",
+  "populate[pages][fullSlug]": "true",
+  "populate[pages][category]": "true",
+};
+
 type PayloadDocsResponse<T> = {
   docs: T[];
   totalDocs?: number;
@@ -93,7 +110,7 @@ function buildPayloadUrl(path: string, params?: Record<string, string>) {
 async function fetchAllPagesPayload(): Promise<Page[]> {
   const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
     buildPayloadUrl("/api/pages", {
-      depth: "2",
+      ...MENU_QUERY_PARAMS,
       limit: DEFAULT_LIMIT,
     }),
     { next: { tags: ["pages"] } },
@@ -106,8 +123,8 @@ async function fetchRootPagesPayload(): Promise<PagesResponse> {
   try {
     const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
       buildPayloadUrl("/api/pages", {
+        ...MENU_QUERY_PARAMS,
         "where[parent][exists]": "false",
-        depth: "2",
         limit: DEFAULT_LIMIT,
       }),
       { next: { tags: ["root_pages"] } },
@@ -236,6 +253,56 @@ export const fetchPageByFullSlug = cache(async (slug: string) => {
   const correctFullSlug = ensureCorrectFullSlug(slug);
   return fetchPageByFullSlugPayload(correctFullSlug);
 });
+
+/**
+ * Lehká varianta fetchPageByFullSlug — vrátí jen pole potřebná pro menu a
+ * drobečky (title, slug, fullSlug, category + děti). Používá se pro předky
+ * v řetězci (breadcrumbs, menu kontext), kde plný detail stránky (~144 KB)
+ * není potřeba — tím odpadají opakované těžké dotazy při generování stránky.
+ */
+async function fetchPageLightByFullSlugPayload(
+  fullSlug: string,
+): Promise<{ data: { pages: Page[] } }> {
+  const response = await fetchJSON<PayloadDocsResponse<RawPayloadPage>>(
+    buildPayloadUrl("/api/pages", {
+      ...MENU_QUERY_PARAMS,
+      "where[fullSlug][equals]": fullSlug,
+      limit: "1",
+    }),
+    { next: { tags: ["page_" + fullSlug] } },
+  );
+  const match = response.docs?.[0]
+    ? normalizePage(response.docs[0])
+    : undefined;
+  return { data: { pages: match ? [match] : [] } };
+}
+
+export const fetchPageLightByFullSlug = cache(async (slug: string) => {
+  return fetchPageLightByFullSlugPayload(ensureCorrectFullSlug(slug));
+});
+
+/**
+ * Levné zjištění, zda má stránka nějaké články (bez stahování jejich obsahu) —
+ * `limit=1` + `depth=0`, čte se jen `totalDocs`. Používá se pro rozhodnutí, zda
+ * v podnavigaci zobrazit záložku „Články", aniž bychom tahali celý kontext.
+ */
+export const pageHasArticles = cache(
+  async (pageId: number | string): Promise<boolean> => {
+    try {
+      const res = await fetchJSON<{ totalDocs?: number }>(
+        buildPayloadUrl("/api/articles", {
+          "where[mainPage][equals]": String(pageId),
+          limit: "1",
+          depth: "0",
+        }),
+        { next: { tags: ["page_" + pageId + "_articles"] } },
+      );
+      return (res.totalDocs ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  },
+);
 
 export const fetchRootPages = cache(fetchRootPagesPayload);
 
