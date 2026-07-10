@@ -80,6 +80,15 @@ export default async function PageRoute({ params }: Props) {
   const { slug } = await params;
   const fullSlug = slug.join("/");
 
+  // Předky (breadcrumbs, menu kontext) rozjedeme SOUBĚŽNĚ s detailem stránky —
+  // jsou odvoditelné přímo ze slugu. React cache() je dedupuje, takže pozdější
+  // await ve fetchAncestorChain už jen sáhne pro hotový výsledek (šetří celou
+  // sériovou vlnu ~0,3–0,5 s na podstránkách). Fire-and-forget + catch: když
+  // stránka neexistuje (článek/404), výsledky se prostě nepoužijí.
+  for (let i = 1; i < slug.length; i++) {
+    void fetchPageLightByFullSlug(slug.slice(0, i).join("/")).catch(() => {});
+  }
+
   // 1. Try fetching as a Page
   const { data: pageData } = await fetchPageByFullSlug(fullSlug);
   if (pageData?.pages.length > 0) {

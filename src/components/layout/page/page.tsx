@@ -47,12 +47,13 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
   // (breadcrumbs i menuContext čtou stejné ancestor fetche — dedupováno.)
   const effectiveCurrencyCode =
     page.detail?.currencyCode || safeRootPage.detail?.currencyCode;
-  const [breadcrumbs, menuContext, exchangeData] = await Promise.all([
+  // Kurz rozjedeme hned (await až v poslední vlně) — nesmí blokovat vlastní vlnu.
+  const exchangePromise = effectiveCurrencyCode
+    ? fetchExchangeRate(effectiveCurrencyCode)
+    : Promise.resolve(null);
+  const [breadcrumbs, menuContext] = await Promise.all([
     getBreadcrumbs(page),
     fetchMenuContext(page, safeRootPage),
-    effectiveCurrencyCode
-      ? fetchExchangeRate(effectiveCurrencyCode)
-      : Promise.resolve(null),
   ]);
 
   // Sekundární menu se nezobrazuje na rubrikách ani statických stránkách.
@@ -63,31 +64,34 @@ export const Page = async ({ page }: { page: PayloadPage }) => {
   // "Místa"/"Články" v sekundárním menu patří kontextovému místu (např. Chorvatsko),
   // ne aktuální podstránce (Vstupní podmínky). Data kontextové stránky načítáme jen když
   // se menu vůbec renderuje (jinak zbytečný fetch pro rubriky/statické stránky).
-  const [practicalInfoSourceChildren, contextFlags] = await Promise.all([
-    fetchPracticalInfoSourceChildren(
-      page,
-      safeRootPage,
-      menuContext.isSubPlace,
-    ),
-    (async (): Promise<{ hasPlaces: boolean; hasArticles: boolean }> => {
-      if (!showSubnavigation) return { hasPlaces: false, hasArticles: false };
-      if (menuContext.contextFullSlug === page.fullSlug) {
-        // Kontext je aktuální stránka — máme její plná data (vč. článků).
+  const [practicalInfoSourceChildren, contextFlags, exchangeData] =
+    await Promise.all([
+      fetchPracticalInfoSourceChildren(
+        page,
+        safeRootPage,
+        menuContext.isSubPlace,
+      ),
+      (async (): Promise<{ hasPlaces: boolean; hasArticles: boolean }> => {
+        if (!showSubnavigation) return { hasPlaces: false, hasArticles: false };
+        if (menuContext.contextFullSlug === page.fullSlug) {
+          // Kontext je aktuální stránka — máme její plná data (vč. článků).
+          return {
+            hasPlaces: (page.children?.docs?.length ?? 0) > 0,
+            hasArticles: (page.articles?.length ?? 0) > 0,
+          };
+        }
+        // Kontext je předek (Místo) — načteme ho lehce (je už v cache z předků)
+        // a existenci článků zjistíme levným počtem místo těžkého detailu.
+        const ctx = (
+          await fetchPageLightByFullSlug(menuContext.contextFullSlug)
+        ).data.pages[0];
         return {
-          hasPlaces: (page.children?.docs?.length ?? 0) > 0,
-          hasArticles: (page.articles?.length ?? 0) > 0,
+          hasPlaces: (ctx?.children?.docs?.length ?? 0) > 0,
+          hasArticles: ctx ? await pageHasArticles(ctx.id) : false,
         };
-      }
-      // Kontext je předek (Místo) — načteme ho lehce (je už v cache z předků)
-      // a existenci článků zjistíme levným počtem místo těžkého detailu.
-      const ctx = (await fetchPageLightByFullSlug(menuContext.contextFullSlug))
-        .data.pages[0];
-      return {
-        hasPlaces: (ctx?.children?.docs?.length ?? 0) > 0,
-        hasArticles: ctx ? await pageHasArticles(ctx.id) : false,
-      };
-    })(),
-  ]);
+      })(),
+      exchangePromise,
+    ]);
   const contextHasPlaces = contextFlags.hasPlaces;
   const contextHasArticles = contextFlags.hasArticles;
 

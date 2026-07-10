@@ -61,8 +61,6 @@ const PAGE_SCALAR_QUERY_PARAMS: Record<string, string> = {
   "populate[users][username]": "true",
   "populate[users][firstName]": "true",
   "populate[users][lastName]": "true",
-  "populate[media][url]": "true",
-  "populate[media][alternativeText]": "true",
 };
 
 // 2) Děti stránky (karty míst, mapa, menu) — texty jsou potřeba pro náhledy
@@ -77,14 +75,17 @@ const PAGE_CHILDREN_QUERY_PARAMS: Record<string, string> = {
   "select[text]": "true",
   "select[detail]": "true",
   "select[featuredImage]": "true",
-  "populate[media][url]": "true",
-  "populate[media][alternativeText]": "true",
 };
 
 // 3) Články stránky (primární přes mainPage + sekundární přes pages) jedním
 // OR dotazem; roztřídí se lokálně podle mainPage. Texty = výňatky karet.
+// depth=1 vrací náhledové obrázky rovnou jako objekty s URL, takže odpadá
+// následný dotaz enrichArticleImages (celá jedna vlna ~0,3 s).
+// POZOR: media dokumenty se NESMÍ ořezávat přes populate[media] — cloudinary
+// plugin počítá `url` v afterRead hooku z ostatních polí (cloudinaryPublicId…);
+// s ořezanými poli vrací url: null a obrázky zmizí.
 const PAGE_ARTICLES_QUERY_PARAMS: Record<string, string> = {
-  depth: "0",
+  depth: "1",
   limit: "100",
   "select[title]": "true",
   "select[slug]": "true",
@@ -92,6 +93,8 @@ const PAGE_ARTICLES_QUERY_PARAMS: Record<string, string> = {
   "select[text]": "true",
   "select[featuredImage]": "true",
   "select[mainPage]": "true",
+  "populate[pages][title]": "true",
+  "populate[pages][fullSlug]": "true",
 };
 
 type PayloadDocsResponse<T> = {
