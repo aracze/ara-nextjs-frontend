@@ -134,6 +134,9 @@ export function Header({
                   >
                     <Link
                       href={page.fullSlug}
+                      // Menu má odkazy na desítky zemí — bez prefetch={false} by
+                      // Next stahoval všechny dopředu (viz síťový "déšť" requestů).
+                      prefetch={false}
                       onClick={() => setActiveDropdown(null)}
                       className="px-5 text-white hover:text-gray-100 transition-colors tracking-wide text-[15px] font-semibold font-heading flex items-center gap-1 whitespace-nowrap"
                     >
@@ -175,6 +178,7 @@ export function Header({
                     <Link
                       key={child.id || `child-${index}`}
                       href={child.fullSlug}
+                      prefetch={false}
                       onClick={() => setActiveDropdown(null)}
                       className="text-[14px] text-gray-800 py-1 px-3 -mx-3 transition-all inline-block w-full [text-shadow:1px_2px_3px_rgb(255,255,255)] hover:text-white hover:bg-[#3C6EAA] hover:rounded-sm hover:no-underline hover:shadow-none hover:[text-shadow:none]"
                     >

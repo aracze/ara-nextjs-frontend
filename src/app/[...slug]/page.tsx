@@ -5,9 +5,12 @@ import { buildPageTitle, rootPageCategories } from "@/lib/page-title";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-// Vykreslujeme za běhu (ne při buildu) — obrázek se staví v GitHub Actions bez
-// běžícího CMS. Data se dál cachují na úrovni fetch (revalidate: 10 s).
-export const dynamic = "force-dynamic";
+// ISR: stránka se vygeneruje on-demand při první návštěvě, cachuje se a na
+// pozadí obnovuje po 5 min. Při publikaci obsahu ji CMS obnoví okamžitě přes
+// /api/cache (revalidateTag). Prefetch i navigace tak berou hotovou verzi
+// z cache místo plného re-renderu — to dramaticky sníží zátěž i dobu odezvy.
+// Bez generateStaticParams se nic neprerenderuje při buildu → build CMS nepotřebuje.
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{ slug: string[] }>;

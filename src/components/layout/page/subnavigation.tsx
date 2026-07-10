@@ -66,7 +66,8 @@ export const Subnavigation = ({
 }) => {
   // Když jsme na článku (activeSection nastaveno), nezvýrazňujeme kontext (Chorvatsko),
   // ale příslušnou sekci („Články").
-  const isContextActive = !activeSection && currentPageFullSlug === contextFullSlug;
+  const isContextActive =
+    !activeSection && currentPageFullSlug === contextFullSlug;
 
   // "Místa"/"Články" scroll to sections that live on the context page. When we're on a
   // sub-page (e.g. Vstupní podmínky), link to the context page + hash so it navigates
@@ -132,6 +133,8 @@ export const Subnavigation = ({
           {/* Context page (the Place that owns this menu) */}
           <Link
             href={contextFullSlug}
+            // Odkazy v podnavigaci nestahujeme dopředu (viz prefetch storm).
+            prefetch={false}
             className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
               isContextActive
                 ? "text-[#287bbb] border-[#287bbb] font-bold"
@@ -150,6 +153,7 @@ export const Subnavigation = ({
             ) : (
               <Link
                 href={sectionHref("mista")}
+                prefetch={false}
                 className={itemClass(activeSection === "mista")}
               >
                 Místa
@@ -165,6 +169,7 @@ export const Subnavigation = ({
               <Link
                 key={pageChild.id}
                 href={pageChild.fullSlug}
+                prefetch={false}
                 className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
                   isActive
                     ? "text-[#287bbb] border-[#287bbb] font-bold"
@@ -180,6 +185,7 @@ export const Subnavigation = ({
           {isSubPlace && practicalInfoPage && (
             <Link
               href={practicalInfoPage.fullSlug}
+              prefetch={false}
               className={`px-3 py-4 tracking-wide transition-colors border-b-2 ${
                 isCurrentPagePracticalInfo
                   ? "text-[#287bbb] border-[#287bbb] font-bold"
@@ -194,12 +200,16 @@ export const Subnavigation = ({
               only if the context place has articles. */}
           {hasArticles &&
             (isContextActive ? (
-              <a href="#clanky" className={itemClass(activeSection === "clanky")}>
+              <a
+                href="#clanky"
+                className={itemClass(activeSection === "clanky")}
+              >
                 Články
               </a>
             ) : (
               <Link
                 href={sectionHref("clanky")}
+                prefetch={false}
                 className={itemClass(activeSection === "clanky")}
               >
                 Články
