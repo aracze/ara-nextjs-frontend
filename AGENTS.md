@@ -1,5 +1,11 @@
 # Ara Next.js Frontend Development Rules
 
+## ⚠️ Workflow — commit & deploy (ZÁVAZNÉ pro AI agenty)
+
+1. **Před každým commitem se vždy zeptej uživatele** — nikdy necommituj bez jeho výslovného souhlasu.
+2. **Před každým pushem se vždy zeptej** — platí pro `main` i pro jakoukoliv jinou větev. Pozor: push do `main` spouští automatické nasazení na produkci (GitHub Actions → ghcr.io → server).
+3. **Před commitem vždy proveď code review změn a sepiš ho do chatu**: co se mění a proč, seznam dotčených souborů, rizika/dopady, jak bylo ověřeno (testy, lokální build/běh). Commit proveď až po odsouhlasení.
+
 You are an expert Next.js and React developer. When working on the Ara frontend, follow these rules:
 
 ## Core Principles
